@@ -13,13 +13,14 @@ public class RhythmManager : MonoBehaviour
     public enum RhythmSyncStatus
     {
         disabled,
+        missed,
         bad,
         good,
         perfect
     }
 
-    //vars to know how much extra power a hit has
-    RhythmSyncStatus statusOfPercRhythm, statusOfSecondaryRhythm;
+    public RhythmSyncStatus oldPercusiveAccuStatus = RhythmSyncStatus.disabled,
+                            oldMelodicAccuStatus = RhythmSyncStatus.disabled;
 
     AudioSource MusicPlayer;
 
@@ -27,23 +28,18 @@ public class RhythmManager : MonoBehaviour
 
     public UIManager UIManager;
 
-    readonly float testingTime = 10f,
-                   range = 0f;
+    readonly float accuracyRange = 0.1f;
 
-    float musicPlayerDeltaTime, 
-          startTime, 
-          endTime, 
-          timeLeftToCalc,
-          baseTime,
-          baseMusicTime,
-          timeDephase,
+    float musicPlayerDeltaTime,
+          startTime,
+          endTime,
           elapsedTime,
           durationOfMusicalTime;
 
-    bool isTimingDephaseCalcActive = false;
+    float[] ranges;
 
-    int percusiveNoteToWatch = 0;
-    int melodicNoteToWatch = 0;
+    int percIntRhythmStatus = 0,
+        melodIntRhythmStatus = 0;
 
     Queue<float> percusiveNotes = new Queue<float>();
     Queue<float> melodicNotes = new Queue<float>();
@@ -51,11 +47,16 @@ public class RhythmManager : MonoBehaviour
     List<float> monitoredPercusiveNotes = new List<float>();
     List<float> monitoredMelodicNotes = new List<float>();
 
-    List<float> depahesValues = new List<float>();
+    /*public delegate void NotesStatus(); 
+    public static event NotesStatus ValidPerfectPercNote,  ValidGoodPercNote,  ValidBadPercNote,  UnvalidPercNote,
+                                    ValidPerfectMelodNote, ValidGoodMelodNote, ValidBadMelodNote, UnvalidMelodNote;*/
+
 
     private void Awake()
     {
         MusicPlayer = gameObject.GetComponent<AudioSource>();
+        ranges = new float[] { accuracyRange, (accuracyRange / 4) * 3 , (accuracyRange / 2) , (accuracyRange / 4) };
+
     }
 
     void Update()
@@ -64,60 +65,50 @@ public class RhythmManager : MonoBehaviour
         if (hasSongStarted)
         {
             endTime = Convert.ToSingle(AudioSettings.dspTime);
-            musicPlayerDeltaTime = (endTime - startTime) * 2;
+            musicPlayerDeltaTime = (endTime - startTime) * 2; //remove the multiplication at own risk
 
             elapsedTime += musicPlayerDeltaTime;
 
-            Debug.Log("deltaTime from audio is " + musicPlayerDeltaTime/* + ", having an accumulated time of " + elapsedTime*/);
+            startTime = endTime;
+
+
+
+            Debug.Log("deltaTime from audio is " + musicPlayerDeltaTime);
             
 
-            //take out time from all the supervised notes
             for (int i = 0; i < 8; i++)
             {
+                
+                //take out the elepased time form the notes
                 monitoredMelodicNotes[i] -= musicPlayerDeltaTime;
                 monitoredPercusiveNotes[i] -= musicPlayerDeltaTime;
+
+                //check for top note to see if something must be done
+                if (3 >= i)
+                {
+
+                    if (ranges[i] >= monitoredMelodicNotes[0] && monitoredMelodicNotes[0] >= -ranges[i])
+                    {
+                        melodIntRhythmStatus++;
+                        
+                    }
+                    if (ranges[i] >= monitoredPercusiveNotes[0] && monitoredPercusiveNotes[0] >= -ranges[i])
+                    {
+                        percIntRhythmStatus++;
+                    }
+                }            
             }
 
-            //log closest note duration
-            //Debug.Log(monitoredMelodicNotes[0] + " " + monitoredPercusiveNotes[0]);
+            Debug.Log("Oldstatus is " + oldMelodicAccuStatus + " with range " + melodIntRhythmStatus);
 
+            if (oldMelodicAccuStatus != (RhythmSyncStatus)melodIntRhythmStatus)
+                SwitchOfActions(oldMelodicAccuStatus = (RhythmSyncStatus)melodIntRhythmStatus, false);
+            if (oldPercusiveAccuStatus != (RhythmSyncStatus)percIntRhythmStatus)
+                SwitchOfActions(oldPercusiveAccuStatus = (RhythmSyncStatus)percIntRhythmStatus, true);
             
-            //if any note reaches the limit to be selected, remove iut and import the new one
-            if (monitoredMelodicNotes[0] <= range)
-            {
-                monitoredMelodicNotes.RemoveAt(0);
-                monitoredMelodicNotes.Add(melodicNotes.Dequeue() - elapsedTime);
-                Debug.LogWarning("queueing new melodic note");
-            }
-
-            if (monitoredPercusiveNotes[0] <= range)
-            {
-                monitoredPercusiveNotes.RemoveAt(0);
-                monitoredPercusiveNotes.Add(percusiveNotes.Dequeue() - elapsedTime);
-                Debug.LogWarning("queueing new percusive note");
-            }
-
-            startTime = endTime;
-            
+            melodIntRhythmStatus = 0;
+            percIntRhythmStatus = 0;
         }
-
-        /*if (isTimingDephaseCalcActive)
-        {
-            if (timeLeftToCalc <= 0)
-            {
-                timeDephase = depahesValues.Average();
-                Debug.Log("Time dephase between CPU and soundcard clocks is " + timeDephase);
-                //isTimingDephaseCalcActive = false;
-                UIManager.changeProgressBarValue(0f);
-                timeLeftToCalc = testingTime;
-            }
-            else
-            {
-                timeLeftToCalc -= Time.deltaTime;
-                depahesValues.Add((Time.time - baseTime) - (MusicPlayer.time - baseMusicTime));
-                UIManager.changeProgressBarValue((testingTime - timeLeftToCalc) / testingTime );
-            }
-        }*/
     }
 
     public void ImportData(string nameOfSong, int songBPM)
@@ -153,8 +144,6 @@ public class RhythmManager : MonoBehaviour
 
         /*DEBUG PLAY, PLEASE REMOVE LATER*/
         StartMusic();
-
-
     }
 
     public void StartMusic()
@@ -174,19 +163,100 @@ public class RhythmManager : MonoBehaviour
         hasSongStarted = true;
     }
 
-    /*public void CalculateTimerDephasing()
+    public void SwitchOfActions(RhythmSyncStatus statusToCheck, bool isItPercusive)
     {
-        timeLeftToCalc = testingTime;
-        baseTime = Time.time;
+        if (isItPercusive)
+        {
+            switch (statusToCheck)
+            {
+                
+                case RhythmSyncStatus.disabled:
+                    if (monitoredPercusiveNotes[0] <= -accuracyRange)
+                    {
+                        monitoredPercusiveNotes.RemoveAt(0);
+                        monitoredPercusiveNotes.Add(percusiveNotes.Dequeue() - elapsedTime);
+                        SwitchOfActions(statusToCheck, isItPercusive);
+                        //Debug.LogWarning("Importing new percusive note");
+                    }
+                    break;
 
-        MusicPlayer.clip = Resources.Load<AudioClip>("Audio/Music/AudioSource/testTrack");
-        MusicPlayer.Play();
-        baseMusicTime = MusicPlayer.time;
+                case RhythmSyncStatus.missed:
+                    break;
 
-        isTimingDephaseCalcActive = true;
+                case RhythmSyncStatus.bad:
+                    break;
 
-        UIManager.activateProgressBar(true);
-        UIManager.changeProgressBarValue(0f);
-        UIManager.ChangeProgressBarText("Testing Dephase...");
-    }*/
+                case RhythmSyncStatus.good:
+                    break;
+
+                case RhythmSyncStatus.perfect:
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        else
+        {
+            switch (statusToCheck)
+            {
+                case RhythmSyncStatus.disabled:
+                    if (monitoredMelodicNotes[0] <= -accuracyRange)
+                    {
+                        monitoredMelodicNotes.RemoveAt(0);
+                        monitoredMelodicNotes.Add(melodicNotes.Dequeue() - elapsedTime);
+                        SwitchOfActions(statusToCheck, isItPercusive);
+                        //Debug.LogWarning("Importing new melodic note");
+                    }
+                    break;
+
+                case RhythmSyncStatus.missed:
+                    break;
+
+                case RhythmSyncStatus.bad:
+                    break;
+
+                case RhythmSyncStatus.good:
+                    break;
+
+                case RhythmSyncStatus.perfect:
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        UIManager.changeIndicatorColor(statusToCheck, isItPercusive);
+    }
+
+    public void AnalizeInput(bool isItPercusive)
+    {
+        string newString;
+
+        if (isItPercusive)
+            newString = oldPercusiveAccuStatus.ToString();
+        else
+            newString = oldMelodicAccuStatus.ToString();
+
+        Debug.Log("Reading newString as " + newString);
+
+        UIManager.ChangeAccuracyIndicatorText(isItPercusive, newString);
+        
+    }
+
+    public void ImportNewNote(bool isItPercusive)
+    {
+        if (isItPercusive && monitoredPercusiveNotes[0] <= accuracyRange)
+        {
+            monitoredPercusiveNotes.RemoveAt(0);
+            monitoredPercusiveNotes.Add(percusiveNotes.Dequeue() - elapsedTime);
+            Debug.LogWarning("Importing new percusive note by input");
+        }
+        else if (!isItPercusive && monitoredMelodicNotes[0] <= accuracyRange)
+        {
+            monitoredMelodicNotes.RemoveAt(0);
+            monitoredMelodicNotes.Add(melodicNotes.Dequeue() - elapsedTime);
+            Debug.LogWarning("Importing new melodic note by input");
+        }
+    }
 }
