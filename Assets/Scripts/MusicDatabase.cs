@@ -10,6 +10,17 @@ public class MusicDatabase : MonoBehaviour
 
     public List<MusicMetadata> songsList = new List<MusicMetadata>();
 
+    bool doOnce = false;
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && !doOnce)
+        {
+            ExportSong("derezzed");
+            doOnce = true;
+        }
+    }
+
     public void ExportSong(string nameOfSong)
     {
         rhythmManager.ImportData(nameOfSong, songsList.Find(x => x.nameOfSong == nameOfSong).tempo);

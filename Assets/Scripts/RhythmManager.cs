@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using UnityEditor;
 using System.Runtime.CompilerServices;
-using UnityEditor.VersionControl;
+//using UnityEditor.VersionControl;
 using System.Linq;
 
 public class RhythmManager : MonoBehaviour
@@ -19,21 +19,28 @@ public class RhythmManager : MonoBehaviour
         perfect
     }
 
+    public enum TypeOfRhythm { percusive, melodic };
+
     public RhythmSyncStatus oldPercusiveAccuStatus = RhythmSyncStatus.disabled,
                             oldMelodicAccuStatus = RhythmSyncStatus.disabled;
 
     AudioSource MusicPlayer;
 
+    public InputReader input;
+
     public static bool hasSongStarted = false;
 
     public UIManager UIManager;
 
-    readonly float accuracyRange = 0.1f;
+    public DebugRegistry debug;
+
+    readonly float accuracyRange = 0.3f;
 
     float musicPlayerDeltaTime,
           startTime,
           endTime,
           elapsedTime,
+          timeLeft,
           durationOfMusicalTime;
 
     float[] ranges;
@@ -46,6 +53,7 @@ public class RhythmManager : MonoBehaviour
 
     List<float> monitoredPercusiveNotes = new List<float>();
     List<float> monitoredMelodicNotes = new List<float>();
+    List<SecondChanceNotes> ListOfSecondChanceNotes = new List<SecondChanceNotes>();
 
     /*public delegate void NotesStatus(); 
     public static event NotesStatus ValidPerfectPercNote,  ValidGoodPercNote,  ValidBadPercNote,  UnvalidPercNote,
@@ -65,16 +73,14 @@ public class RhythmManager : MonoBehaviour
         if (hasSongStarted)
         {
             endTime = Convert.ToSingle(AudioSettings.dspTime);
-            musicPlayerDeltaTime = (endTime - startTime) * 2; //remove the multiplication at own risk
+            musicPlayerDeltaTime = (endTime - startTime) ; //remove the multiplication at own risk
 
             elapsedTime += musicPlayerDeltaTime;
+            timeLeft -= musicPlayerDeltaTime;
+
+            Debug.Log("TimeLeft Is " + timeLeft);
 
             startTime = endTime;
-
-
-
-            Debug.Log("deltaTime from audio is " + musicPlayerDeltaTime);
-            
 
             for (int i = 0; i < 8; i++)
             {
@@ -99,7 +105,14 @@ public class RhythmManager : MonoBehaviour
                 }            
             }
 
-            Debug.Log("Oldstatus is " + oldMelodicAccuStatus + " with range " + melodIntRhythmStatus);
+            for (int i = 0; i < ListOfSecondChanceNotes.Count; i++)
+            {
+                ListOfSecondChanceNotes[i].time -= musicPlayerDeltaTime;
+                if (ListOfSecondChanceNotes[i].time < -ranges[0])
+                {
+                    ListOfSecondChanceNotes.RemoveAt(i);
+                }
+            }
 
             if (oldMelodicAccuStatus != (RhythmSyncStatus)melodIntRhythmStatus)
                 SwitchOfActions(oldMelodicAccuStatus = (RhythmSyncStatus)melodIntRhythmStatus, false);
@@ -108,6 +121,35 @@ public class RhythmManager : MonoBehaviour
             
             melodIntRhythmStatus = 0;
             percIntRhythmStatus = 0;
+
+            if (timeLeft <= 0)
+            {
+                FightManager.WhatPlayeris looserPlayer;
+
+                if (input.Player1.lifeReserve > input.Player2.lifeReserve)
+                {
+                    looserPlayer = FightManager.WhatPlayeris.P2;
+                }
+                else if (input.Player2.lifeReserve > input.Player1.lifeReserve)
+                {
+                    looserPlayer = FightManager.WhatPlayeris.P1;
+                }
+                else
+                {
+                    if (input.Player1.accumulatedDamage > input.Player2.accumulatedDamage)
+                        looserPlayer = FightManager.WhatPlayeris.P1;
+                    else if (input.Player2.accumulatedDamage > input.Player1.accumulatedDamage)
+                        looserPlayer = FightManager.WhatPlayeris.P2;
+                    else
+                        looserPlayer = FightManager.WhatPlayeris.None;
+                    
+                }
+
+                UIManager.DeclareWinner(looserPlayer);
+                hasSongStarted = false;
+
+            }
+
         }
     }
 
@@ -126,9 +168,9 @@ public class RhythmManager : MonoBehaviour
         for (int i = 0; i < importedNotes._notes.Length; i++)
         {
             if (importedNotes._notes[i]._type == 1)
-                percusiveNotes.Enqueue(importedNotes._notes[i]._time);
+                percusiveNotes.Enqueue(importedNotes._notes[i]._time / 2);
             else
-                melodicNotes.Enqueue(importedNotes._notes[i]._time);
+                melodicNotes.Enqueue(importedNotes._notes[i]._time / 2);
         }
         
         //trash values to not break the code
@@ -141,6 +183,8 @@ public class RhythmManager : MonoBehaviour
         MusicPlayer.clip = Resources.Load<AudioClip>("Audio/Music/AudioSource/" + nameOfSong);
 
         durationOfMusicalTime = songBPM / 60 /*because a minute has 60 seconds, duh*/;
+
+        UIManager.instructions.SetActive(false);
 
         /*DEBUG PLAY, PLEASE REMOVE LATER*/
         StartMusic();
@@ -159,6 +203,8 @@ public class RhythmManager : MonoBehaviour
         startTime = Convert.ToSingle(AudioSettings.dspTime);
 
         elapsedTime = 0;
+
+        timeLeft = MusicPlayer.clip.length;
 
         hasSongStarted = true;
     }
@@ -226,37 +272,149 @@ public class RhythmManager : MonoBehaviour
                     break;
             }
         }
-        UIManager.changeIndicatorColor(statusToCheck, isItPercusive);
+        UIManager.ChangeIndicatorColor(statusToCheck, isItPercusive);
     }
 
-    public void AnalizeInput(bool isItPercusive)
+    public void AnalizeInput(FightManager.WhatPlayeris whatPlayeris, TypeOfRhythm typeOfRhythm)
     {
-        string newString;
+        FightManager.WhatPlayeris playerThaStillHasAChance;
+        float secondChanceNoteTime = 0;
 
-        if (isItPercusive)
-            newString = oldPercusiveAccuStatus.ToString();
+        //if the player has a queued note of the rhythm in the second chance list
+        if (ListOfSecondChanceNotes.FindIndex( item => item.whatPlayeris == whatPlayeris) == ListOfSecondChanceNotes.FindIndex(item => item.typeOfRhythm == typeOfRhythm))
+        {
+            //remove the item that coincides the list
+            int index = ListOfSecondChanceNotes.FindIndex(a => a.whatPlayeris == whatPlayeris);
+
+
+            if (whatPlayeris == FightManager.WhatPlayeris.P1)
+            {
+                if (typeOfRhythm == TypeOfRhythm.percusive)
+                    input.Player1.PercAccuStatus = FloatToRhythmSyncStatus(ListOfSecondChanceNotes[index].time);
+                else
+                    input.Player1.MelodAccuStatus = FloatToRhythmSyncStatus(ListOfSecondChanceNotes[index].time);
+            }
+            else if (whatPlayeris == FightManager.WhatPlayeris.P2)
+            {
+                if (typeOfRhythm == TypeOfRhythm.percusive)
+                    input.Player2.PercAccuStatus = FloatToRhythmSyncStatus(ListOfSecondChanceNotes[index].time);
+                else
+                    input.Player2.MelodAccuStatus = FloatToRhythmSyncStatus(ListOfSecondChanceNotes[index].time);
+            }
+
+            ListOfSecondChanceNotes.RemoveAt(index);
+        }
         else
-            newString = oldMelodicAccuStatus.ToString();
+        {
+            switch (whatPlayeris)
+            {
+                case FightManager.WhatPlayeris.P1:
+                    playerThaStillHasAChance = FightManager.WhatPlayeris.P2;
 
-        Debug.Log("Reading newString as " + newString);
+                    break;
 
-        UIManager.ChangeAccuracyIndicatorText(isItPercusive, newString);
-        
+                case FightManager.WhatPlayeris.P2:
+                    playerThaStillHasAChance = FightManager.WhatPlayeris.P1;
+                    break;
+
+                default:
+                    Debug.Log("Idiot, you didin't define the player in input analizer for RhythmManager ");
+                    playerThaStillHasAChance = FightManager.WhatPlayeris.None;
+                    break;
+            }
+
+            switch (typeOfRhythm)
+            {
+                case TypeOfRhythm.percusive:
+                    secondChanceNoteTime = monitoredPercusiveNotes[0];
+
+                    if (whatPlayeris == FightManager.WhatPlayeris.P1)
+                        input.Player1.PercAccuStatus = oldPercusiveAccuStatus;
+                    else if (whatPlayeris == FightManager.WhatPlayeris.P2)
+                        input.Player2.PercAccuStatus = oldPercusiveAccuStatus;
+
+                    break;
+
+                case TypeOfRhythm.melodic:
+                    secondChanceNoteTime = monitoredMelodicNotes[0];
+
+                    if (whatPlayeris == FightManager.WhatPlayeris.P1)
+                        input.Player1.MelodAccuStatus = oldMelodicAccuStatus;
+                    else if (whatPlayeris == FightManager.WhatPlayeris.P2)
+                        input.Player2.MelodAccuStatus = oldMelodicAccuStatus;
+
+                    break;
+
+                default:
+                    break;
+            }
+
+            ListOfSecondChanceNotes.Add(new SecondChanceNotes(typeOfRhythm, playerThaStillHasAChance, secondChanceNoteTime));
+
+            ImportNewNote(typeOfRhythm);
+        }
     }
 
-    public void ImportNewNote(bool isItPercusive)
+    public RhythmSyncStatus FloatToRhythmSyncStatus(float noteToAnalize)
     {
-        if (isItPercusive && monitoredPercusiveNotes[0] <= accuracyRange)
+        int enumIndex = 0;
+        for (int i = 0; i < 4; i++)
         {
-            monitoredPercusiveNotes.RemoveAt(0);
-            monitoredPercusiveNotes.Add(percusiveNotes.Dequeue() - elapsedTime);
-            Debug.LogWarning("Importing new percusive note by input");
+            if (ranges[i] >= noteToAnalize && noteToAnalize >= ranges[i])
+            {
+                enumIndex++;
+            }
         }
-        else if (!isItPercusive && monitoredMelodicNotes[0] <= accuracyRange)
+        return (RhythmSyncStatus)enumIndex;
+    }
+
+    public void ImportNewNote(TypeOfRhythm typeOfRhythm)
+    {
+        switch (typeOfRhythm)
         {
-            monitoredMelodicNotes.RemoveAt(0);
-            monitoredMelodicNotes.Add(melodicNotes.Dequeue() - elapsedTime);
-            Debug.LogWarning("Importing new melodic note by input");
+            case TypeOfRhythm.percusive:
+                if (monitoredPercusiveNotes[0] <= accuracyRange)
+                {
+                    monitoredPercusiveNotes.RemoveAt(0);
+                    monitoredPercusiveNotes.Add(percusiveNotes.Dequeue() - elapsedTime);
+                    Debug.LogWarning("Importing new percusive note by input");
+                }
+                break;
+
+            case TypeOfRhythm.melodic:
+                if (monitoredMelodicNotes[0] <= accuracyRange)
+                {
+                    monitoredMelodicNotes.RemoveAt(0);
+                    monitoredMelodicNotes.Add(melodicNotes.Dequeue() - elapsedTime);
+                    Debug.LogWarning("Importing new melodic note by input");
+                }
+                break;
+
+            default:
+                Debug.LogError("Somehow you managed to jot assign a type of rhythm correctrly to import a new son, dumbass");
+                break;
         }
     }
+
+
+
 }
+
+public class SecondChanceNotes
+{
+    public RhythmManager.TypeOfRhythm typeOfRhythm;
+
+    public FightManager.WhatPlayeris whatPlayeris;
+
+    public float time;
+
+    public SecondChanceNotes(RhythmManager.TypeOfRhythm typeOfRhythm, FightManager.WhatPlayeris whatPlayeris, float time)
+    {
+        this.typeOfRhythm = typeOfRhythm;
+        this.whatPlayeris = whatPlayeris;
+        this.time = time;
+    }
+
+
+}
+
