@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.IO;
-using UnityEditor;
 using System.Runtime.CompilerServices;
-//using UnityEditor.VersionControl;
 using System.Linq;
 
 public class RhythmManager : MonoBehaviour
@@ -74,6 +72,7 @@ public class RhythmManager : MonoBehaviour
         {
             endTime = Convert.ToSingle(AudioSettings.dspTime);
             musicPlayerDeltaTime = (endTime - startTime) ; //remove the multiplication at own risk
+
 
             elapsedTime += musicPlayerDeltaTime;
             timeLeft -= musicPlayerDeltaTime;
@@ -159,7 +158,7 @@ public class RhythmManager : MonoBehaviour
         string stringOfImporting;
 
         //read the .dat that holds the json with the notes of the song
-        stringOfImporting = File.ReadAllText(Application.dataPath + "/Resources/Audio/Music/datFiles/" + nameOfSong + "/Easy.dat");
+        stringOfImporting = File.ReadAllText(Application.dataPath + "/Audio/Music/datFiles/" + nameOfSong + "/Easy.dat");
 
         //make the JsonUtility import the data
         ClassOfList importedNotes = JsonUtility.FromJson<ClassOfList>(stringOfImporting);
@@ -180,7 +179,7 @@ public class RhythmManager : MonoBehaviour
             melodicNotes.Enqueue(99999999.9f);
         }
         //set audio clip to the track one
-        MusicPlayer.clip = Resources.Load<AudioClip>("Audio/Music/AudioSource/" + nameOfSong);
+        MusicPlayer.clip = Resources.Load<AudioClip>("Audio/Music/AudioSource" + nameOfSong);
 
         durationOfMusicalTime = songBPM / 60 /*because a minute has 60 seconds, duh*/;
 
@@ -417,4 +416,5 @@ public class SecondChanceNotes
 
 
 }
+
 
