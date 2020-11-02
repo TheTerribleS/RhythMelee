@@ -155,13 +155,12 @@ public class RhythmManager : MonoBehaviour
     public void ImportData(string nameOfSong, int songBPM)
     {
         //this string is only used to import the json
-        string stringOfImporting;
+        var stringOfImporting = Resources.Load<TextAsset>("Audio/Music/datFiles/" + nameOfSong + "/Easy");
 
-        //read the .dat that holds the json with the notes of the song
-        stringOfImporting = File.ReadAllText(Application.dataPath + "/Audio/Music/datFiles/" + nameOfSong + "/Easy.dat");
+        Debug.Log(stringOfImporting.text);
 
         //make the JsonUtility import the data
-        ClassOfList importedNotes = JsonUtility.FromJson<ClassOfList>(stringOfImporting);
+        ClassOfList importedNotes = JsonUtility.FromJson<ClassOfList>(stringOfImporting.text);
 
         //import times to their respective queue
         for (int i = 0; i < importedNotes._notes.Length; i++)
@@ -179,7 +178,7 @@ public class RhythmManager : MonoBehaviour
             melodicNotes.Enqueue(99999999.9f);
         }
         //set audio clip to the track one
-        MusicPlayer.clip = Resources.Load<AudioClip>("Audio/Music/AudioSource" + nameOfSong);
+        MusicPlayer.clip = Resources.Load<AudioClip>("Audio/Music/AudioSource/" + nameOfSong);
 
         durationOfMusicalTime = songBPM / 60 /*because a minute has 60 seconds, duh*/;
 
