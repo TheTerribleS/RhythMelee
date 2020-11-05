@@ -35,8 +35,8 @@ public class RhythmManager : MonoBehaviour
     readonly float accuracyRange = 0.3f;
 
     float musicPlayerDeltaTime,
-          startTime,
-          endTime,
+          frameStartTime,
+          frameEndTime,
           elapsedTime,
           timeLeft,
           durationOfMusicalTime;
@@ -57,21 +57,13 @@ public class RhythmManager : MonoBehaviour
     public static event NotesStatus ValidPerfectPercNote,  ValidGoodPercNote,  ValidBadPercNote,  UnvalidPercNote,
                                     ValidPerfectMelodNote, ValidGoodMelodNote, ValidBadMelodNote, UnvalidMelodNote;*/
 
-
-    private void Awake()
-    {
-        MusicPlayer = gameObject.GetComponent<AudioSource>();
-        ranges = new float[] { accuracyRange, (accuracyRange / 4) * 3 , (accuracyRange / 2) , (accuracyRange / 4) };
-
-    }
-
     void Update()
     {
         
         if (hasSongStarted)
         {
-            endTime = Convert.ToSingle(AudioSettings.dspTime);
-            musicPlayerDeltaTime = (endTime - startTime) ; //remove the multiplication at own risk
+            frameEndTime = Convert.ToSingle(AudioSettings.dspTime);
+            musicPlayerDeltaTime = (frameEndTime - frameStartTime) ; //remove the multiplication at own risk
 
 
             elapsedTime += musicPlayerDeltaTime;
@@ -79,7 +71,7 @@ public class RhythmManager : MonoBehaviour
 
             Debug.Log("TimeLeft Is " + timeLeft);
 
-            startTime = endTime;
+            frameStartTime = frameEndTime;
 
             for (int i = 0; i < 8; i++)
             {
@@ -198,7 +190,7 @@ public class RhythmManager : MonoBehaviour
 
         MusicPlayer.Play();
 
-        startTime = Convert.ToSingle(AudioSettings.dspTime);
+        frameStartTime = Convert.ToSingle(AudioSettings.dspTime);
 
         elapsedTime = 0;
 

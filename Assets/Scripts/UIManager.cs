@@ -6,16 +6,36 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    public GameObject progressBarGameObject, percAccuracyIndicator, melodAccuracyIndicator, debuggingScreen, instructions;
-    public Slider DamageIndicatorP1, DamageIndicatorP2;
-    public Text percAccuIndText, MelodAccuIndText, WinnerText, P1Lifes, P2Lifes;
-    public TextMeshProUGUI debugP1Stats, debugP2Stats;
-    public Image PercRhythmIndicator, MelodRhythmIndicator;
+    public GameObject progressBarGameObject, 
+                      percAccuracyIndicator, 
+                      melodAccuracyIndicator, 
+                      debuggingScreen, 
+                      instructions;
+    
+    public Slider DamageIndicatorP1,
+                  DamageIndicatorP2;
+    
+    public Text percAccuIndText, 
+                MelodAccuIndText, 
+                WinnerText, 
+                P1Lifes, 
+                P2Lifes;
+    
+    public TextMeshProUGUI debugP1Stats, 
+                           debugP2Stats;
+
+    public Image PercRhythmIndicator, 
+                 MelodRhythmIndicator;
+    
     public InputReader inputReader;
+    
     public DebugRegistry debug;
 
-    public Color PercRhythmIndColor = Color.blue, MelodRhythmIndColor = Color.magenta;
-    Color goodColor = Color.yellow, badColor = Color.red;
+    public Color PercRhythmIndColor = Color.blue, 
+                 MelodRhythmIndColor = Color.magenta;
+    
+    Color goodColor = Color.yellow, 
+          badColor = Color.red;
 
     private void Awake()
     {
@@ -101,7 +121,6 @@ public class UIManager : MonoBehaviour
 
         
     }
-
 
     public void UpdatePlayerData(PlayerScript player, FightManager.WhatPlayeris playerToModify)
     {

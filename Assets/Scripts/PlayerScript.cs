@@ -8,11 +8,18 @@ public class PlayerScript : MonoBehaviour
     public float accumulatedDamage = 0,
                  movementBonus = 1,
                  jumpBonus = 1,
-                 HitBonus = 1,
+                 hitBonus = 1,
                  melodicBonus = 1,
                  sensitivity;
 
+    public bool isOnGround = true,
+                amIReadyToHit = false,
+                amIBoostingPercusive = false,
+                amIBoostingMelodic = false,
+                AmIProtecting = false;
+
     public int lifeReserve = 0;
+
     public FightManager.WhatPlayeris whatPlayerAmI;
     public RhythmManager.RhythmSyncStatus PercAccuStatus, MelodAccuStatus;
 
@@ -25,11 +32,7 @@ public class PlayerScript : MonoBehaviour
     public DebugRegistry debug;
 
 
-    public bool isOnGround = true,
-                amIReadyToHit = false,
-                amIBoostingPercusive = false,
-                amIBoostingMelodic = false,
-                AmIProtecting = false;
+    
 
     private void Awake()
     {
@@ -51,7 +54,63 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.GetComponent<Ground>() != null)
+        {
+            isOnGround = true;
+        }
+    }
 
+    public void OnTriggerEnter(Collider other)
+    {
+        PlayerScript opponent;
+
+        int xAxisSense, yAxisSense;
+
+        if (transform.position.x - other.gameObject.transform.position.x > 0)
+            xAxisSense = 1;
+        else
+            xAxisSense = -1;
+
+        if (transform.position.y - other.gameObject.transform.position.y > 0)
+            yAxisSense = 1;
+        else
+            yAxisSense = -1;
+
+
+        if (other.gameObject.GetComponent<HitTrigger>() != null)
+        {
+            Debug.Log("im entering the TrigEnt because of the " + other.name + " object");
+
+            transform.position += new Vector3(xAxisSense / 2, 0.5f, 0);
+            opponent = GetComponentInParent<PlayerScript>();
+            rigidbody.AddForce(opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * xAxisSense, opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * yAxisSense, 0);
+            accumulatedDamage += (opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity) / 100;
+            UIManager.UpdatePlayerData(this, whatPlayerAmI);
+
+            if (accumulatedDamage >= 300)
+            {
+                accumulatedDamage = 300;
+            }
+
+            Debug.Log("adding " + opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity + " of force");
+        }
+
+    }
+
+    public void OnTriggerExit(Collider collision)
+    {
+        if (collision.GetComponent<SafeZone>() != null)
+        {
+            Debug.Log("I'm exiting the grid");
+            if (AreThereNoLifesLeft())
+            {
+                UIManager.DeclareWinner(this.whatPlayerAmI);
+            }
+            transform.position = new Vector3(0, 2, 0);
+        }
+    }
     public void StartMelodicBoost()
     {
         StartCoroutine(MelodicBoost());
@@ -65,13 +124,13 @@ public class PlayerScript : MonoBehaviour
         {
             movementBonus += melodicBonus;
             jumpBonus += melodicBonus;
-            HitBonus += melodicBonus;
+            hitBonus += melodicBonus;
         }
         debug.RegisterRhythmicBoost(whatPlayerAmI, PercAccuStatus, RhythmManager.TypeOfRhythm.melodic);
         yield return new WaitForSeconds(0.2f);
         movementBonus -= melodicBonus;
         jumpBonus -= melodicBonus;
-        HitBonus -= melodicBonus;
+        hitBonus -= melodicBonus;
         amIBoostingMelodic = false;
     }
 
@@ -87,13 +146,13 @@ public class PlayerScript : MonoBehaviour
         {
             movementBonus += 1;
             jumpBonus += 1;
-            HitBonus += 1;
+            hitBonus += 1;
         }
         debug.RegisterRhythmicBoost(whatPlayerAmI, PercAccuStatus, RhythmManager.TypeOfRhythm.percusive);
         yield return new WaitForSeconds(0.2f);
         movementBonus -= 1;
         jumpBonus -= 1;
-        HitBonus -= 1;
+        hitBonus -= 1;
         amIBoostingPercusive = false;
     }
 
@@ -108,14 +167,6 @@ public class PlayerScript : MonoBehaviour
         HitDetectionBox.gameObject.SetActive(true);
         yield return wtf;
         HitDetectionBox.gameObject.SetActive(false);
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.GetComponent<Ground>() != null)
-        {
-            isOnGround = true;
-        }
     }
 
     public bool AreThereNoLifesLeft()
@@ -168,53 +219,5 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
-    public void OnTriggerEnter(Collider other)
-    {
-        PlayerScript opponent;
-
-        int xAxisSense, yAxisSense;
-
-        if (transform.position.x - other.gameObject.transform.position.x > 0)
-            xAxisSense = 1;
-        else
-            xAxisSense = -1;
-
-        if (transform.position.y - other.gameObject.transform.position.y > 0)
-            yAxisSense = 1;
-        else
-            yAxisSense = -1;
-
-
-        if (other.gameObject.GetComponent<HitTrigger>() != null)
-        {
-            Debug.Log("im entering the TrigEnt because of the " + other.name + " object");
-            
-            transform.position += new Vector3(xAxisSense / 2, 0.5f, 0);
-            opponent = GetComponentInParent<PlayerScript>();
-            rigidbody.AddForce(opponent.HitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * xAxisSense, opponent.HitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * yAxisSense, 0);
-            accumulatedDamage += (opponent.HitBonus * ((accumulatedDamage / 100) + 1) * sensitivity) / 100;
-            UIManager.UpdatePlayerData(this, whatPlayerAmI);
-
-            if (accumulatedDamage >= 300)
-            {
-                accumulatedDamage = 300;
-            }
-
-            Debug.Log("adding " + opponent.HitBonus * ((accumulatedDamage / 100) + 1) * sensitivity + " of force");
-        }
-       
-    }
-
-    public void OnTriggerExit(Collider collision)
-    {
-        if (collision.GetComponent<SafeZone>() != null)
-        {
-            Debug.Log("I'm exiting the grid");
-            if (AreThereNoLifesLeft())
-            {
-                UIManager.DeclareWinner(this.whatPlayerAmI);
-            }
-                transform.position = new Vector3(0, 2, 0);
-        }
-    }
+    
 }

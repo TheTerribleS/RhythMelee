@@ -14,14 +14,14 @@ public class InputReader : MonoBehaviour
 
     public float p1XTransform = 0, p2XTransform = 0, p1YTransform = 0, p2YTransform = 0;
 
-    public bool P1DoOnceHit, P2DoOnceHit,
-                P1DoOnceFF,  P2DoOnceFF;
+    public bool p1DoOnceHit, p2DoOnceHit,
+                p1DoOnceFastFall,  p2DoOnceFastFall;
 
 
-    KeyCode PercusiveInputP1 = KeyCode.Q,
-            MelodicInputP1 = KeyCode.E,
-            PercusiveInputP2 = KeyCode.Y,
-            MelodicInputP2 = KeyCode.I;
+    readonly KeyCode PercusiveInputP1 = KeyCode.Q,
+                     MelodicInputP1 = KeyCode.E,
+                     PercusiveInputP2 = KeyCode.Y,
+                     MelodicInputP2 = KeyCode.I;
 
     public RhythmManager rhythmManager;
     // Update is called once per frame
@@ -67,17 +67,17 @@ public class InputReader : MonoBehaviour
         else if (Input.GetKey(KeyCode.S) && !Player1.isOnGround)
         {
             Player1.GetComponent<Rigidbody>().AddForce(0, -9.81f, 0);
-            if (!P1DoOnceFF)
+            if (!p1DoOnceFastFall)
             {
                 debug.player1.forcedFalls++;
-                P1DoOnceFF = true;
+                p1DoOnceFastFall = true;
             }
                 
         }
         else if (Input.GetKeyUp(KeyCode.S) && Player1.isOnGround)
         {
             Player1.AmIProtecting = false;
-            P1DoOnceFF = false;
+            p1DoOnceFastFall = false;
         }
 
         //hit input P1
@@ -85,10 +85,10 @@ public class InputReader : MonoBehaviour
         {
             Player1.amIReadyToHit = true;
 
-            if (!P1DoOnceHit)
+            if (!p1DoOnceHit)
             {
                 Player1.StartHitRoutine();
-                P1DoOnceHit = true;
+                p1DoOnceHit = true;
                 
                 debug.player1.totalHits++;
 
@@ -104,7 +104,7 @@ public class InputReader : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Z) || Input.GetKeyUp(KeyCode.X))
         {
             Player1.amIReadyToHit = false;
-            P1DoOnceHit = false;
+            p1DoOnceHit = false;
         }
 
         //player1 rhythmic Inputs
@@ -163,16 +163,16 @@ public class InputReader : MonoBehaviour
         else if (Input.GetKey(KeyCode.J) && !Player2.isOnGround)
         {
             Player2.GetComponent<Rigidbody>().AddForce(0, -9.81f, 0);
-            if (!P2DoOnceFF)
+            if (!p2DoOnceFastFall)
             {
                 debug.player2.forcedFalls++;
-                P2DoOnceFF = true;
+                p2DoOnceFastFall = true;
             }
         }
         else if (Input.GetKeyUp(KeyCode.J) && Player2.isOnGround)
         {
             Player2.AmIProtecting = false;
-            P2DoOnceFF = false;
+            p2DoOnceFastFall = false;
         }
         
         //hit input P2
@@ -180,10 +180,10 @@ public class InputReader : MonoBehaviour
         {
             Player2.amIReadyToHit = true;
             
-            if (!P2DoOnceHit)
+            if (!p2DoOnceHit)
             {
                 Player2.StartHitRoutine();
-                P2DoOnceHit = true;
+                p2DoOnceHit = true;
 
                 debug.player2.totalHits++;
 
@@ -196,7 +196,7 @@ public class InputReader : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.N) || Input.GetKeyUp(KeyCode.M))
         {
             Player2.amIReadyToHit = false;
-            P2DoOnceHit = false;
+            p2DoOnceHit = false;
         }
 
         //player 2 Rhythmic inputs
