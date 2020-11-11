@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Linq;
+using UnityEditorInternal;
 
 public class RhythmManager : MonoBehaviour
 {
@@ -52,30 +53,77 @@ public class RhythmManager : MonoBehaviour
     List<float> monitoredPercusiveNotes = new List<float>();
     List<float> monitoredMelodicNotes = new List<float>();
     List<SecondChanceNotes> ListOfSecondChanceNotes = new List<SecondChanceNotes>();
+    List<_events> SongEventsList = new List<_events>();
 
     /*public delegate void NotesStatus(); 
     public static event NotesStatus ValidPerfectPercNote,  ValidGoodPercNote,  ValidBadPercNote,  UnvalidPercNote,
                                     ValidPerfectMelodNote, ValidGoodMelodNote, ValidBadMelodNote, UnvalidMelodNote;*/
+
+    public delegate void SongEventsNotifier();
+    public static event SongEventsNotifier MelodicAceStart, MelodicAceEnd, FrenzeeStart, DeactivateSongEvents;
+
+    private void Awake()
+    {
+        MusicPlayer = GetComponent<AudioSource>();
+
+        ranges = new float[] { accuracyRange, 
+                              (accuracyRange / 4) *3, 
+                               accuracyRange / 2, 
+                               accuracyRange / 4 
+                             };
+    }
 
     void Update()
     {
         
         if (hasSongStarted)
         {
+            //time stuff that has to be done
             frameEndTime = Convert.ToSingle(AudioSettings.dspTime);
-            musicPlayerDeltaTime = (frameEndTime - frameStartTime) ; //remove the multiplication at own risk
-
+            musicPlayerDeltaTime = (frameEndTime - frameStartTime);
 
             elapsedTime += musicPlayerDeltaTime;
             timeLeft -= musicPlayerDeltaTime;
 
-            Debug.Log("TimeLeft Is " + timeLeft);
-
             frameStartTime = frameEndTime;
+
+            //manage events
+            //if there are still events to monitor
+            if (SongEventsList.Count != 0)
+            {
+                //take out time from event
+                SongEventsList[0]._time -= musicPlayerDeltaTime;
+                
+                if (SongEventsList[0]._time <= 0)
+                {
+                    switch(SongEventsList[0]._value)
+                    {
+                        case 6:
+                            MelodicAceStart();
+                            break;
+                        case 7:
+                            MelodicAceEnd();
+                            break;
+                        case 1:
+                        case 2:
+                            FrenzeeStart();
+                            break;
+                        case 3:
+                            DeactivateSongEvents();
+                            break;
+                        default:
+                            Debug.LogError("WTF you tried to call an event with type " + SongEventsList[0]._value);
+                            break;
+                    }
+
+                    SongEventsList.RemoveAt(0);
+
+                    SongEventsList[0]._time -= elapsedTime;
+                }
+            }
 
             for (int i = 0; i < 8; i++)
             {
-                
                 //take out the elepased time form the notes
                 monitoredMelodicNotes[i] -= musicPlayerDeltaTime;
                 monitoredPercusiveNotes[i] -= musicPlayerDeltaTime;
@@ -96,15 +144,20 @@ public class RhythmManager : MonoBehaviour
                 }            
             }
 
+            //take out time from second chance notes
             for (int i = 0; i < ListOfSecondChanceNotes.Count; i++)
             {
                 ListOfSecondChanceNotes[i].time -= musicPlayerDeltaTime;
+                
+                //if it goes out of range, take it out
                 if (ListOfSecondChanceNotes[i].time < -ranges[0])
                 {
                     ListOfSecondChanceNotes.RemoveAt(i);
                 }
             }
 
+
+            //if any of the new states has a different range from the previous one, chek what to do
             if (oldMelodicAccuStatus != (RhythmSyncStatus)melodIntRhythmStatus)
                 SwitchOfActions(oldMelodicAccuStatus = (RhythmSyncStatus)melodIntRhythmStatus, false);
             if (oldPercusiveAccuStatus != (RhythmSyncStatus)percIntRhythmStatus)
@@ -113,6 +166,7 @@ public class RhythmManager : MonoBehaviour
             melodIntRhythmStatus = 0;
             percIntRhythmStatus = 0;
 
+            //if there is no time left, analyze players to declare a winner
             if (timeLeft <= 0)
             {
                 FightManager.WhatPlayeris looserPlayer;
@@ -133,34 +187,41 @@ public class RhythmManager : MonoBehaviour
                         looserPlayer = FightManager.WhatPlayeris.P2;
                     else
                         looserPlayer = FightManager.WhatPlayeris.None;
-                    
                 }
-
                 UIManager.DeclareWinner(looserPlayer);
                 hasSongStarted = false;
-
             }
-
         }
     }
 
-    public void ImportData(string nameOfSong, int songBPM)
+    public void ImportData(string songName, float tempo)
     {
         //this string is only used to import the json
-        var stringOfImporting = Resources.Load<TextAsset>("Audio/Music/datFiles/" + nameOfSong + "/Easy");
+        var stringOfImporting = Resources.Load<TextAsset>("Audio/Music/datFiles/" + songName + "/Easy");
 
-        Debug.Log(stringOfImporting.text);
+        durationOfMusicalTime = 60 / tempo /*because a minute has 60 seconds, duh*/;
+
+        Debug.Log("Duration of musical time is " + durationOfMusicalTime);
 
         //make the JsonUtility import the data
-        ClassOfList importedNotes = JsonUtility.FromJson<ClassOfList>(stringOfImporting.text);
+        APIList importedNotes = JsonUtility.FromJson<APIList>(stringOfImporting.text);
 
         //import times to their respective queue
         for (int i = 0; i < importedNotes._notes.Length; i++)
         {
             if (importedNotes._notes[i]._type == 1)
-                percusiveNotes.Enqueue(importedNotes._notes[i]._time / 2);
+                percusiveNotes.Enqueue(importedNotes._notes[i]._time * durationOfMusicalTime);
             else
-                melodicNotes.Enqueue(importedNotes._notes[i]._time / 2);
+                melodicNotes.Enqueue(importedNotes._notes[i]._time * durationOfMusicalTime);
+        }
+
+        //import events that mark melodicAce and Frenzee zones
+        for (int i = 0; i < importedNotes._events.Length; i++)
+        {
+            SongEventsList.Add(importedNotes._events[i]);
+
+            //adjust time marks
+            SongEventsList[i]._time *= durationOfMusicalTime;
         }
         
         //trash values to not break the code
@@ -170,9 +231,9 @@ public class RhythmManager : MonoBehaviour
             melodicNotes.Enqueue(99999999.9f);
         }
         //set audio clip to the track one
-        MusicPlayer.clip = Resources.Load<AudioClip>("Audio/Music/AudioSource/" + nameOfSong);
+        MusicPlayer.clip = Resources.Load<AudioClip>("Audio/Music/AudioSource/" + songName);
 
-        durationOfMusicalTime = songBPM / 60 /*because a minute has 60 seconds, duh*/;
+        
 
         UIManager.instructions.SetActive(false);
 
@@ -385,9 +446,6 @@ public class RhythmManager : MonoBehaviour
                 break;
         }
     }
-
-
-
 }
 
 public class SecondChanceNotes
@@ -404,8 +462,6 @@ public class SecondChanceNotes
         this.whatPlayeris = whatPlayeris;
         this.time = time;
     }
-
-
 }
 
 

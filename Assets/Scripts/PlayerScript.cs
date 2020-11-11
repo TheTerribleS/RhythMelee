@@ -38,6 +38,11 @@ public class PlayerScript : MonoBehaviour
     {
         rigidbody = GetComponent<Rigidbody>();
         HitDetectionBox.gameObject.SetActive(false);
+
+        RhythmManager.MelodicAceStart += MonitorProgressForMelodicAce;
+        RhythmManager.MelodicAceEnd += SuspendMelodicMonitoring;
+        RhythmManager.FrenzeeStart += BoostOfFrenzee;
+        RhythmManager.DeactivateSongEvents += StopSongBoosts;
     }
 
     private void Update()
@@ -68,6 +73,7 @@ public class PlayerScript : MonoBehaviour
 
         int xAxisSense, yAxisSense;
 
+        //determine the trayectory to be launched
         if (transform.position.x - other.gameObject.transform.position.x > 0)
             xAxisSense = 1;
         else
@@ -78,30 +84,24 @@ public class PlayerScript : MonoBehaviour
         else
             yAxisSense = -1;
 
-
         if (other.gameObject.GetComponent<HitTrigger>() != null)
         {
-            Debug.Log("im entering the TrigEnt because of the " + other.name + " object");
-
             transform.position += new Vector3(xAxisSense / 2, 0.5f, 0);
             opponent = GetComponentInParent<PlayerScript>();
             rigidbody.AddForce(opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * xAxisSense, opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * yAxisSense, 0);
             accumulatedDamage += (opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity) / 100;
-            UIManager.UpdatePlayerData(this, whatPlayerAmI);
+            UIManager.UpdatePlayerData(this);
 
             if (accumulatedDamage >= 300)
             {
                 accumulatedDamage = 300;
             }
-
-            Debug.Log("adding " + opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity + " of force");
         }
-
     }
 
-    public void OnTriggerExit(Collider collision)
+    public void OnTriggerExit(Collider collider)
     {
-        if (collision.GetComponent<SafeZone>() != null)
+        if (collider.GetComponent<SafeZone>() != null)
         {
             Debug.Log("I'm exiting the grid");
             if (AreThereNoLifesLeft())
@@ -219,5 +219,23 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
-    
+    public void MonitorProgressForMelodicAce()
+    {
+
+    }
+
+    public void SuspendMelodicMonitoring()
+    {
+
+    }
+
+    public void BoostOfFrenzee() 
+    { 
+        
+    }
+
+    public void StopSongBoosts()
+    {
+
+    }
 }

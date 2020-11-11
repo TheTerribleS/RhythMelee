@@ -122,9 +122,9 @@ public class UIManager : MonoBehaviour
         
     }
 
-    public void UpdatePlayerData(PlayerScript player, FightManager.WhatPlayeris playerToModify)
+    public void UpdatePlayerData(PlayerScript player)
     {
-        switch (playerToModify)
+        switch (player.whatPlayerAmI)
         {
             case FightManager.WhatPlayeris.P1:
                 DamageIndicatorP1.value = player.accumulatedDamage;

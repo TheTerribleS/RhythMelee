@@ -2,20 +2,27 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputReader : MonoBehaviour
+public class InputReader: MonoBehaviour
 {
     public UIManager UIManager;
 
     public DebugRegistry debug;
 
-    public PlayerScript Player1, Player2;
+    public PlayerScript Player1,   
+                        Player2;
 
-    public float movementSpeed = 1, jumpForce = 200;
+    public float movementSpeed = 1, 
+                 jumpForce = 200;
 
-    public float p1XTransform = 0, p2XTransform = 0, p1YTransform = 0, p2YTransform = 0;
+    public float p1XTransform = 0, 
+                 p2XTransform = 0, 
+                 p1YTransform = 0, 
+                 p2YTransform = 0;
 
-    public bool p1DoOnceHit, p2DoOnceHit,
-                p1DoOnceFastFall,  p2DoOnceFastFall;
+    public bool p1DoOnceHit, 
+                p2DoOnceHit,
+                p1DoOnceFastFall,  
+                p2DoOnceFastFall;
 
 
     readonly KeyCode PercusiveInputP1 = KeyCode.Q,

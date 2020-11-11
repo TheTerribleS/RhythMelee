@@ -43,6 +43,8 @@ public class DebugRegistry : MonoBehaviour
                     player2.failedMelodicBoosts++;
             }
         }
+        else
+            Debug.LogError("WTF no player was assigned");
     }
 }
 

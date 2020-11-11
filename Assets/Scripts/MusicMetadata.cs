@@ -17,7 +17,7 @@ public enum TypeOfRhythm
 public class MusicMetadata
 {
     public string nameOfSong;
-    public int tempo;
+    public float tempo;
     public bool isItUnlocked;
 
     MusicMetadata(string nameOfSong, int tempo, bool isItUnlocked)
@@ -38,10 +38,10 @@ public class MusicMetadata
 /*Don't @ me, this is the way the json is exported*/
 
 [System.Serializable]
-public class ClassOfList
+public class APIList
 {
     public string _version;
-    public string[] events;
+    public _events[] _events;
     public _notes[] _notes;
 }
 
@@ -53,4 +53,12 @@ public class _notes
     public int _lineLayer;
     public int _type;
     public int _cutDirection;
+}
+
+[System.Serializable]
+public class _events
+{
+    public float _time;
+    public int _type;
+    public int _value;
 }

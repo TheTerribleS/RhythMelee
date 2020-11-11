@@ -16,13 +16,14 @@ public class MusicDatabase : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space) && !doOnce)
         {
-            ExportSong("derezzed");
+            ExportSong("goin in");
             doOnce = true;
         }
     }
 
-    public void ExportSong(string nameOfSong)
+    public void ExportSong(string songName)
     {
-        rhythmManager.ImportData(nameOfSong, songsList.Find(x => x.nameOfSong == nameOfSong).tempo);
+        //make rhythmManaget import the song and give the tempo
+        rhythmManager.ImportData(songName, songsList.Find(x => x.nameOfSong == songName).tempo);
     }
 }

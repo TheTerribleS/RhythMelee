@@ -1179,6 +1179,9 @@ MonoBehaviour:
   - nameOfSong: derezzed
     tempo: 120
     isItUnlocked: 1
+  - nameOfSong: goin in
+    tempo: 130
+    isItUnlocked: 1
 --- !u!1 &480582638
 GameObject:
   m_ObjectHideFlags: 0
@@ -2023,9 +2026,14 @@ MonoBehaviour:
   accumulatedDamage: 0
   movementBonus: 1
   jumpBonus: 1
-  HitBonus: 1
+  hitBonus: 1
   melodicBonus: 1
   sensitivity: 0
+  isOnGround: 0
+  amIReadyToHit: 0
+  amIBoostingPercusive: 0
+  amIBoostingMelodic: 0
+  AmIProtecting: 0
   lifeReserve: 2
   whatPlayerAmI: 0
   PercAccuStatus: 0
@@ -2033,11 +2041,6 @@ MonoBehaviour:
   UIManager: {fileID: 357351565}
   HitDetectionBox: {fileID: 1178344919}
   debug: {fileID: 1632505211}
-  isOnGround: 0
-  amIReadyToHit: 0
-  amIBoostingPercusive: 0
-  amIBoostingMelodic: 0
-  AmIProtecting: 0
 --- !u!65 &961185238
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2167,9 +2170,14 @@ MonoBehaviour:
   accumulatedDamage: 0
   movementBonus: 1
   jumpBonus: 1
-  HitBonus: 1
+  hitBonus: 1
   melodicBonus: 1
   sensitivity: 0
+  isOnGround: 0
+  amIReadyToHit: 0
+  amIBoostingPercusive: 0
+  amIBoostingMelodic: 0
+  AmIProtecting: 0
   lifeReserve: 2
   whatPlayerAmI: 1
   PercAccuStatus: 0
@@ -2177,11 +2185,6 @@ MonoBehaviour:
   UIManager: {fileID: 357351565}
   HitDetectionBox: {fileID: 1458751382}
   debug: {fileID: 1632505211}
-  isOnGround: 0
-  amIReadyToHit: 0
-  amIBoostingPercusive: 0
-  amIBoostingMelodic: 0
-  AmIProtecting: 0
 --- !u!65 &992713456
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3360,10 +3363,10 @@ MonoBehaviour:
   p2XTransform: 0
   p1YTransform: 0
   p2YTransform: 0
-  P1DoOnceHit: 0
-  P2DoOnceHit: 0
-  P1DoOnceFF: 0
-  P2DoOnceFF: 0
+  p1DoOnceHit: 0
+  p2DoOnceHit: 0
+  p1DoOnceFastFall: 0
+  p2DoOnceFastFall: 0
   rhythmManager: {fileID: 1406586290}
 --- !u!4 &1368079494
 Transform:
