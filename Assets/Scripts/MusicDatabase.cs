@@ -12,15 +12,6 @@ public class MusicDatabase : MonoBehaviour
 
     bool doOnce = false;
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space) && !doOnce)
-        {
-            ExportSong("goin in");
-            doOnce = true;
-        }
-    }
-
     public void ExportSong(string songName)
     {
         //make rhythmManaget import the song and give the tempo

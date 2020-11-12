@@ -124,11 +124,14 @@ public class UIManager : MonoBehaviour
 
     public void UpdatePlayerData(PlayerScript player)
     {
+        Debug.Log("I enter the update with " + player.lifeReserve + " lifes and " + player.accumulatedDamage + " of damage");
         switch (player.whatPlayerAmI)
         {
             case FightManager.WhatPlayeris.P1:
                 DamageIndicatorP1.value = player.accumulatedDamage;
                 P1Lifes.text = "Lifes: " + player.lifeReserve;
+                Debug.Log("importing life as " + player.lifeReserve
+                    );
                 break;
             case FightManager.WhatPlayeris.P2:
                 DamageIndicatorP2.value = player.accumulatedDamage;

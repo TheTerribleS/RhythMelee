@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Linq;
-using UnityEditorInternal;
 
 public class RhythmManager : MonoBehaviour
 {
@@ -260,6 +259,13 @@ public class RhythmManager : MonoBehaviour
         hasSongStarted = true;
     }
 
+    public void StopMusic()
+    {
+        MusicPlayer.Stop();
+        hasSongStarted = false;
+    }
+
+
     public void SwitchOfActions(RhythmSyncStatus statusToCheck, bool isItPercusive)
     {
         if (isItPercusive)
@@ -331,12 +337,12 @@ public class RhythmManager : MonoBehaviour
         FightManager.WhatPlayeris playerThaStillHasAChance;
         float secondChanceNoteTime = 0;
 
-        //if the player has a queued note of the rhythm in the second chance list
-        if (ListOfSecondChanceNotes.FindIndex( item => item.whatPlayeris == whatPlayeris) == ListOfSecondChanceNotes.FindIndex(item => item.typeOfRhythm == typeOfRhythm))
+        //if the scondChanceNotes list has queued notes and the player has a queued note of the rhythm in the second chance list
+        if ((ListOfSecondChanceNotes.FindIndex( item => item.whatPlayeris == whatPlayeris) == ListOfSecondChanceNotes.FindIndex(item => item.typeOfRhythm == typeOfRhythm))
+            && ListOfSecondChanceNotes.FindIndex(item => item.typeOfRhythm == typeOfRhythm) != -1)
         {
             //remove the item that coincides the list
             int index = ListOfSecondChanceNotes.FindIndex(a => a.whatPlayeris == whatPlayeris);
-
 
             if (whatPlayeris == FightManager.WhatPlayeris.P1)
             {
@@ -401,6 +407,7 @@ public class RhythmManager : MonoBehaviour
             }
 
             ListOfSecondChanceNotes.Add(new SecondChanceNotes(typeOfRhythm, playerThaStillHasAChance, secondChanceNoteTime));
+            Debug.Log("I do create the new class");
 
             ImportNewNote(typeOfRhythm);
         }

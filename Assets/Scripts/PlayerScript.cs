@@ -31,7 +31,7 @@ public class PlayerScript : MonoBehaviour
 
     public DebugRegistry debug;
 
-
+    public RhythmManager RhythmManager;
     
 
     private void Awake()
@@ -43,6 +43,8 @@ public class PlayerScript : MonoBehaviour
         RhythmManager.MelodicAceEnd += SuspendMelodicMonitoring;
         RhythmManager.FrenzeeStart += BoostOfFrenzee;
         RhythmManager.DeactivateSongEvents += StopSongBoosts;
+
+        UIManager.UpdatePlayerData(this);
     }
 
     private void Update()
@@ -107,18 +109,23 @@ public class PlayerScript : MonoBehaviour
             if (AreThereNoLifesLeft())
             {
                 UIManager.DeclareWinner(this.whatPlayerAmI);
+                RhythmManager.StopMusic();
             }
+            UIManager.UpdatePlayerData(this);
             transform.position = new Vector3(0, 2, 0);
         }
     }
     public void StartMelodicBoost()
     {
-        StartCoroutine(MelodicBoost());
+        if (!amIBoostingMelodic)
+            StartCoroutine(MelodicBoost());
     }
 
     IEnumerator MelodicBoost()
     {
         amIBoostingMelodic = true;
+
+        RhythmManager.AnalizeInput(whatPlayerAmI, RhythmManager.TypeOfRhythm.melodic);
 
         if ((int)MelodAccuStatus == 4 )
         {
@@ -127,6 +134,7 @@ public class PlayerScript : MonoBehaviour
             hitBonus += melodicBonus;
         }
         debug.RegisterRhythmicBoost(whatPlayerAmI, PercAccuStatus, RhythmManager.TypeOfRhythm.melodic);
+        Debug.Log("Melodic boost of " + whatPlayerAmI + " is " + MelodAccuStatus);
         yield return new WaitForSeconds(0.2f);
         movementBonus -= melodicBonus;
         jumpBonus -= melodicBonus;
@@ -136,12 +144,15 @@ public class PlayerScript : MonoBehaviour
 
     public void StartPercusiveBoost()
     {
-        StartCoroutine(PercusiveBoost());
+        if(!amIBoostingPercusive)
+            StartCoroutine(PercusiveBoost());
     }
 
     IEnumerator PercusiveBoost()
     {
         amIBoostingPercusive = true;
+        RhythmManager.AnalizeInput(whatPlayerAmI, RhythmManager.TypeOfRhythm.melodic);
+
         if ((int)PercAccuStatus == 4)
         {
             movementBonus += 1;
@@ -149,6 +160,7 @@ public class PlayerScript : MonoBehaviour
             hitBonus += 1;
         }
         debug.RegisterRhythmicBoost(whatPlayerAmI, PercAccuStatus, RhythmManager.TypeOfRhythm.percusive);
+        Debug.Log("Melodic boost of " + whatPlayerAmI + " is " + MelodAccuStatus);
         yield return new WaitForSeconds(0.2f);
         movementBonus -= 1;
         jumpBonus -= 1;
@@ -178,6 +190,7 @@ public class PlayerScript : MonoBehaviour
         else
         {
             lifeReserve--;
+            Debug.Log("resting life, now being " + lifeReserve);
             return false;
         }
     }

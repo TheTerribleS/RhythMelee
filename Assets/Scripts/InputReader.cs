@@ -119,12 +119,14 @@ public class InputReader: MonoBehaviour
         if (Input.GetKeyDown(MelodicInputP1))
         {
             //UIManager.AppearMelodAccuIndicator();
+            Debug.Log("I correctly read the input");
             Player1.StartMelodicBoost();
         }
             
         if (Input.GetKeyDown(PercusiveInputP1))
-        { 
+        {
             //UIManager.AppearPercAccuIndicator();
+            Debug.Log("I correctly read the input");
             Player1.StartPercusiveBoost();
         }
 
