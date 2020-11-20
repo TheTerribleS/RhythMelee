@@ -19,7 +19,9 @@ public class UIManager : MonoBehaviour
                 MelodAccuIndText, 
                 WinnerText, 
                 P1Lifes, 
-                P2Lifes;
+                P2Lifes,
+                P1MelodCombo,
+                P2MelodCombo;
     
     public TextMeshProUGUI debugP1Stats, 
                            debugP2Stats;
@@ -33,6 +35,7 @@ public class UIManager : MonoBehaviour
 
     public Color PercRhythmIndColor = Color.blue, 
                  MelodRhythmIndColor = Color.magenta;
+
     
     Color goodColor = Color.yellow, 
           badColor = Color.red;
@@ -130,12 +133,12 @@ public class UIManager : MonoBehaviour
             case FightManager.WhatPlayeris.P1:
                 DamageIndicatorP1.value = player.accumulatedDamage;
                 P1Lifes.text = "Lifes: " + player.lifeReserve;
-                Debug.Log("importing life as " + player.lifeReserve
-                    );
+                P1MelodCombo.text = player.melodicComboLevel.ToString() + "/" + player.collectedMelodicNotes.ToString();
                 break;
             case FightManager.WhatPlayeris.P2:
                 DamageIndicatorP2.value = player.accumulatedDamage;
                 P2Lifes.text = "Lifes: " + player.lifeReserve;
+                P2MelodCombo.text = player.melodicComboLevel.ToString() + "/" + player.collectedMelodicNotes.ToString();
                 break;
             default:
                 Debug.LogError("Somehow you didn't declare the player, dumbass (UIM 110)");

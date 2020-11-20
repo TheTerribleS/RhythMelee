@@ -18,12 +18,14 @@ public class PlayerScript : MonoBehaviour
                 amIBoostingMelodic = false,
                 AmIProtecting = false;
 
-    public int lifeReserve = 0;
+    public int lifeReserve = 0,
+               melodicComboLevel = 1,
+               collectedMelodicNotes = 0;
 
     public FightManager.WhatPlayeris whatPlayerAmI;
     public RhythmManager.RhythmSyncStatus PercAccuStatus, MelodAccuStatus;
 
-    public UIManager UIManager;
+    public UIManager UIManagerGameObject;
 
     public BoxCollider HitDetectionBox;
 
@@ -43,8 +45,8 @@ public class PlayerScript : MonoBehaviour
         RhythmManager.MelodicAceEnd += SuspendMelodicMonitoring;
         RhythmManager.FrenzeeStart += BoostOfFrenzee;
         RhythmManager.DeactivateSongEvents += StopSongBoosts;
+        UIManagerGameObject.UpdatePlayerData(this);
 
-        UIManager.UpdatePlayerData(this);
     }
 
     private void Update()
@@ -92,7 +94,7 @@ public class PlayerScript : MonoBehaviour
             opponent = GetComponentInParent<PlayerScript>();
             rigidbody.AddForce(opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * xAxisSense, opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * yAxisSense, 0);
             accumulatedDamage += (opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity) / 100;
-            UIManager.UpdatePlayerData(this);
+            UIManagerGameObject.UpdatePlayerData(this);
 
             if (accumulatedDamage >= 300)
             {
@@ -108,10 +110,10 @@ public class PlayerScript : MonoBehaviour
             Debug.Log("I'm exiting the grid");
             if (AreThereNoLifesLeft())
             {
-                UIManager.DeclareWinner(this.whatPlayerAmI);
+                UIManagerGameObject.DeclareWinner(this.whatPlayerAmI);
                 RhythmManager.StopMusic();
             }
-            UIManager.UpdatePlayerData(this);
+            UIManagerGameObject.UpdatePlayerData(this);
             transform.position = new Vector3(0, 2, 0);
         }
     }
@@ -126,16 +128,22 @@ public class PlayerScript : MonoBehaviour
         amIBoostingMelodic = true;
 
         RhythmManager.AnalizeInput(whatPlayerAmI, RhythmManager.TypeOfRhythm.melodic);
-
-        if ((int)MelodAccuStatus == 4 )
-        {
-            movementBonus += melodicBonus;
-            jumpBonus += melodicBonus;
-            hitBonus += melodicBonus;
-        }
+        MelodicBoostManager(MelodAccuStatus);
         debug.RegisterRhythmicBoost(whatPlayerAmI, PercAccuStatus, RhythmManager.TypeOfRhythm.melodic);
+        
         Debug.Log("Melodic boost of " + whatPlayerAmI + " is " + MelodAccuStatus);
+        
+        melodicBonus = 0.25f * melodicComboLevel;
+        movementBonus += melodicBonus;
+        jumpBonus += melodicBonus;
+        hitBonus += melodicBonus;
+
+        Debug.Log("I still continue on the function, btw");
+
+        UIManagerGameObject.UpdatePlayerData(this);
+
         yield return new WaitForSeconds(0.2f);
+        
         movementBonus -= melodicBonus;
         jumpBonus -= melodicBonus;
         hitBonus -= melodicBonus;
@@ -151,7 +159,7 @@ public class PlayerScript : MonoBehaviour
     IEnumerator PercusiveBoost()
     {
         amIBoostingPercusive = true;
-        RhythmManager.AnalizeInput(whatPlayerAmI, RhythmManager.TypeOfRhythm.melodic);
+        RhythmManager.AnalizeInput(whatPlayerAmI, RhythmManager.TypeOfRhythm.percusive);
 
         if ((int)PercAccuStatus == 4)
         {
@@ -160,7 +168,7 @@ public class PlayerScript : MonoBehaviour
             hitBonus += 1;
         }
         debug.RegisterRhythmicBoost(whatPlayerAmI, PercAccuStatus, RhythmManager.TypeOfRhythm.percusive);
-        Debug.Log("Melodic boost of " + whatPlayerAmI + " is " + MelodAccuStatus);
+        Debug.Log("Percusive boost of " + whatPlayerAmI + " is " + PercAccuStatus);
         yield return new WaitForSeconds(0.2f);
         movementBonus -= 1;
         jumpBonus -= 1;
@@ -204,31 +212,59 @@ public class PlayerScript : MonoBehaviour
 
     public void MelodicBoostManager(RhythmManager.RhythmSyncStatus melodRHythmicSyncStatus)
     {
+        Debug.Log("I enter the function with " + melodRHythmicSyncStatus + " status");
         switch (melodRHythmicSyncStatus)
         {
+            case RhythmManager.RhythmSyncStatus.bad:
             case RhythmManager.RhythmSyncStatus.missed:
+                int substraction;
+
+                if (melodRHythmicSyncStatus == RhythmManager.RhythmSyncStatus.bad)
+                    substraction = 1;
+                else
+                    substraction = 2;
+
+                collectedMelodicNotes -= substraction;
+                if (collectedMelodicNotes < 0)
+                {
+                    if (melodicComboLevel == 1)
+                    {
+                        collectedMelodicNotes = 0;
+                    }
+                    else
+                    {
+                        melodicComboLevel--;
+                        collectedMelodicNotes = melodicComboLevel;
+                        substraction--;
+                        collectedMelodicNotes -= substraction;
+                    }
+                }
+                break;
+
+            case RhythmManager.RhythmSyncStatus.perfect:
+                if (collectedMelodicNotes == melodicComboLevel)
+                {
+                    if (melodicComboLevel == 8)
+                    {
+                        //do nothing
+                    }
+                    else
+                    {
+                        melodicComboLevel++;
+                        collectedMelodicNotes = 0;
+                    }
+                }
+                else
+                {
+                    collectedMelodicNotes++;
+                }
+                break;
+
+
+            case RhythmManager.RhythmSyncStatus.good:
             case RhythmManager.RhythmSyncStatus.disabled:
             default:
-                melodicBonus -= 0.5f;
                 break;
-
-            case RhythmManager.RhythmSyncStatus.bad:
-                melodicBonus -= 0.25f;
-                break;
-            case RhythmManager.RhythmSyncStatus.good:
-                break;
-            case RhythmManager.RhythmSyncStatus.perfect:
-                melodicBonus += 0.25f;
-                break;
-        }
-
-        if (melodicBonus < 1)
-        {
-            melodicBonus = 1;
-        }
-        else if (melodicBonus > 2)
-        {
-            melodicBonus = 2;
         }
     }
 
