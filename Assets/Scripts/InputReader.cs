@@ -11,6 +11,8 @@ public class InputReader: MonoBehaviour
     public PlayerScript Player1,   
                         Player2;
 
+    public GameObject pauseMenu;
+
     public float movementSpeed = 1, 
                  jumpForce = 200;
 
@@ -22,13 +24,17 @@ public class InputReader: MonoBehaviour
     public bool p1DoOnceHit, 
                 p2DoOnceHit,
                 p1DoOnceFastFall,  
-                p2DoOnceFastFall;
+                p2DoOnceFastFall,
+                isPausing = false;
+                
 
 
     readonly KeyCode PercusiveInputP1 = KeyCode.Q,
                      MelodicInputP1 = KeyCode.E,
                      PercusiveInputP2 = KeyCode.Y,
                      MelodicInputP2 = KeyCode.I;
+
+
 
     public RhythmManager rhythmManager;
     // Update is called once per frame
@@ -222,7 +228,11 @@ public class InputReader: MonoBehaviour
 
         }
 
-        
+        //pause
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            PauseManaging(); 
+        }
 
         Player2.transform.position += new Vector3(p2XTransform, p2YTransform, 0);
 
@@ -231,5 +241,22 @@ public class InputReader: MonoBehaviour
         p1YTransform = 0;
         p2XTransform = 0;
         p2YTransform = 0;
+    }
+    public void PauseManaging()
+    {
+        if (!isPausing)
+        {
+            Time.timeScale = 0;
+            rhythmManager.PauseMusic(true);
+            pauseMenu.SetActive(true);
+            isPausing = true;
+        }
+        else
+        {
+            Time.timeScale = 1;
+            pauseMenu.SetActive(false);
+            rhythmManager.PauseMusic(false);
+            isPausing = false;
+        }
     }
 }

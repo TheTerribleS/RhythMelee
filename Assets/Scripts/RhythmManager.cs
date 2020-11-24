@@ -79,9 +79,15 @@ public class RhythmManager : MonoBehaviour
         {
             //time stuff that has to be done
             frameEndTime = Convert.ToSingle(AudioSettings.dspTime);
-            musicPlayerDeltaTime = (frameEndTime - frameStartTime);
+            
+
+            if (input.isPausing)
+                elapsedTime = 0;
+            else
+                musicPlayerDeltaTime = (frameEndTime - frameStartTime);
 
             elapsedTime += musicPlayerDeltaTime;
+
             timeLeft -= musicPlayerDeltaTime;
 
             frameStartTime = frameEndTime;
@@ -451,6 +457,18 @@ public class RhythmManager : MonoBehaviour
             default:
                 Debug.LogError("Somehow you managed to jot assign a type of rhythm correctrly to import a new son, dumbass");
                 break;
+        }
+    }
+
+    public void PauseMusic(bool pause)
+    {
+        if (pause)
+        {
+            MusicPlayer.Pause();
+        }
+        else
+        {
+            MusicPlayer.Play();
         }
     }
 }
