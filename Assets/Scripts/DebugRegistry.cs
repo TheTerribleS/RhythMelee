@@ -13,34 +13,106 @@ public class DebugRegistry : MonoBehaviour
         {
             if (typeOfRhythm == RhythmManager.TypeOfRhythm.percusive)
             {
-                if (status == RhythmManager.RhythmSyncStatus.perfect)
-                    player1.successfulPercusiveBoosts++;
-                else
-                    player1.failedPercusiveBoosts++;
+                switch (status)
+                {  
+                    case RhythmManager.RhythmSyncStatus.missed:
+                        player1.failedMelodicBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.bad:
+                        player1.badMelodicBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.good:
+                        player1.goodMelodicBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.perfect:
+                        player1.perfectMelodicBoostsOrHits++;
+                        break;
+                    
+                    case RhythmManager.RhythmSyncStatus.disabled:
+                    default:
+                        break;
+                }
             }
             else
             {
-                if (status == RhythmManager.RhythmSyncStatus.perfect)
-                    player1.successfulMelodicBoosts++;
-                else
-                    player1.failedMelodicBoosts++;
+                switch (status)
+                {
+                    case RhythmManager.RhythmSyncStatus.missed:
+                        player1.failedPercusiveBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.bad:
+                        player1.badPercusiveBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.good:
+                        player1.goodPercusiveBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.perfect:
+                        player1.perfectPercusiveBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.disabled:
+                    default:
+                        break;
+                }
             }
         }
         else if (player == FightManager.WhatPlayeris.P2)
         {
             if (typeOfRhythm == RhythmManager.TypeOfRhythm.percusive)
             {
-                if (status == RhythmManager.RhythmSyncStatus.perfect)
-                    player2.successfulPercusiveBoosts++;
-                else
-                    player2.failedPercusiveBoosts++;
+                switch (status)
+                {
+                    case RhythmManager.RhythmSyncStatus.missed:
+                        player2.failedMelodicBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.bad:
+                        player2.badMelodicBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.good:
+                        player2.goodMelodicBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.perfect:
+                        player2.perfectMelodicBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.disabled:
+                    default:
+                        break;
+                }
             }
             else
             {
-                if (status == RhythmManager.RhythmSyncStatus.perfect)
-                    player2.successfulMelodicBoosts++;
-                else
-                    player2.failedMelodicBoosts++;
+                switch (status)
+                {
+                    case RhythmManager.RhythmSyncStatus.missed:
+                        player2.failedPercusiveBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.bad:
+                        player2.badPercusiveBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.good:
+                        player2.goodPercusiveBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.perfect:
+                        player2.perfectPercusiveBoostsOrHits++;
+                        break;
+
+                    case RhythmManager.RhythmSyncStatus.disabled:
+                    default:
+                        break;
+                }
             }
         }
         else
@@ -52,16 +124,19 @@ public class DebugClass
 {
     public int totalJumps,
                totalHits,
-               failedPercusiveBoosts,
-               successfulPercusiveBoosts,
-               failedMelodicBoosts,
-               successfulMelodicBoosts,
+               failedPercusiveBoostsOrHits,
+               badPercusiveBoostsOrHits,
+               goodPercusiveBoostsOrHits,
+               perfectPercusiveBoostsOrHits,
+               failedMelodicBoostsOrHits,
+               badMelodicBoostsOrHits,
+               goodMelodicBoostsOrHits,
+               perfectMelodicBoostsOrHits,
                melodicJumps,
                percusiveJumps,
-               melodicHits,
-               percusiveHits,
                defenses, 
                forcedFalls;
+
 
     FightManager.WhatPlayeris player;
 
@@ -71,15 +146,17 @@ public class DebugClass
 
         totalJumps = 0;
         totalHits = 0;
-        failedPercusiveBoosts = 0;
-        successfulPercusiveBoosts = 0;
-        failedMelodicBoosts = 0;
-        successfulMelodicBoosts = 0;
+        failedPercusiveBoostsOrHits = 0;
+        badPercusiveBoostsOrHits = 0;
+        goodPercusiveBoostsOrHits = 0;
+        perfectPercusiveBoostsOrHits = 0;
+        failedMelodicBoostsOrHits = 0;
+        badMelodicBoostsOrHits = 0;
+        goodMelodicBoostsOrHits = 0;
+        perfectMelodicBoostsOrHits = 0;
         melodicJumps = 0;
         percusiveJumps = 0;
-        melodicHits = 0;
-        percusiveHits = 0;
-        defenses = 0;
+        defenses = 0; 
         forcedFalls = 0;
     }
 }

@@ -93,8 +93,11 @@ public class InputReader: MonoBehaviour
             p1DoOnceFastFall = false;
         }
 
-        //hit input P1
-        if (Input.GetKey(KeyCode.Z) || Input.GetKey(KeyCode.X))
+        
+
+        //player1 rhythmic hits
+
+        if (Input.GetKeyDown(MelodicInputP1) || Input.GetKeyDown(PercusiveInputP1))
         {
             Player1.amIReadyToHit = true;
 
@@ -102,39 +105,32 @@ public class InputReader: MonoBehaviour
             {
                 Player1.StartHitRoutine();
                 p1DoOnceHit = true;
-                
-                debug.player1.totalHits++;
 
-                if (Player1.amIBoostingMelodic)
-                    debug.player1.melodicHits++;
-                else if (Player1.amIBoostingPercusive)
-                    debug.player1.percusiveHits++;
+                debug.player1.totalHits++;
             }
-                
+
+            if (Input.GetKeyDown(MelodicInputP1))
+            {
+                //UIManager.AppearMelodAccuIndicator();
+                Debug.Log("I correctly read the input");
+                Player1.StartMelodicBoost();
+            }
+
+            if (Input.GetKeyDown(PercusiveInputP1))
+            {
+                //UIManager.AppearPercAccuIndicator();
+                Debug.Log("I correctly read the input");
+                Player1.StartPercusiveBoost();
+            }
         }
 
         //hit input P1
-        if (Input.GetKeyUp(KeyCode.Z) || Input.GetKeyUp(KeyCode.X))
+        if (Input.GetKeyUp(MelodicInputP1) || Input.GetKeyUp(PercusiveInputP1))
         {
             Player1.amIReadyToHit = false;
             p1DoOnceHit = false;
         }
 
-        //player1 rhythmic Inputs
-
-        if (Input.GetKeyDown(MelodicInputP1))
-        {
-            //UIManager.AppearMelodAccuIndicator();
-            Debug.Log("I correctly read the input");
-            Player1.StartMelodicBoost();
-        }
-            
-        if (Input.GetKeyDown(PercusiveInputP1))
-        {
-            //UIManager.AppearPercAccuIndicator();
-            Debug.Log("I correctly read the input");
-            Player1.StartPercusiveBoost();
-        }
 
         //making p1 changes
 
@@ -191,7 +187,7 @@ public class InputReader: MonoBehaviour
         }
         
         //hit input P2
-        if (Input.GetKey(KeyCode.N) || Input.GetKey(KeyCode.M))
+        if (Input.GetKeyDown(KeyCode.N) || Input.GetKeyDown(KeyCode.M))
         {
             Player2.amIReadyToHit = true;
             
@@ -202,31 +198,29 @@ public class InputReader: MonoBehaviour
 
                 debug.player2.totalHits++;
 
-                if (Player2.amIBoostingMelodic)
-                    debug.player2.melodicHits++;
-                else if (Player2.amIBoostingPercusive)
-                    debug.player2.percusiveHits++;
+            }
+
+            if (Input.GetKeyDown(MelodicInputP2))
+            {
+                //UIManager.AppearMelodAccuIndicator();
+                Player2.StartMelodicBoost();
+            }
+
+            if (Input.GetKeyDown(PercusiveInputP2))
+            {
+                //UIManager.AppearPercAccuIndicator();
+                Player2.StartPercusiveBoost();
+
             }
         }
-        if (Input.GetKeyUp(KeyCode.N) || Input.GetKeyUp(KeyCode.M))
+        if (Input.GetKeyUp(MelodicInputP2) || Input.GetKeyUp(PercusiveInputP2))
         {
             Player2.amIReadyToHit = false;
             p2DoOnceHit = false;
         }
 
         //player 2 Rhythmic inputs
-        if (Input.GetKeyDown(MelodicInputP2))
-        {
-            //UIManager.AppearMelodAccuIndicator();
-            Player2.StartMelodicBoost();
-        }
-
-        if (Input.GetKeyDown(PercusiveInputP2))
-        {
-            //UIManager.AppearPercAccuIndicator();
-            Player2.StartPercusiveBoost();
-
-        }
+        
 
         //pause
         if (Input.GetKeyDown(KeyCode.Escape))

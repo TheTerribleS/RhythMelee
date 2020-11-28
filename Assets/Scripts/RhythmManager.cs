@@ -30,9 +30,12 @@ public class RhythmManager : MonoBehaviour
 
     public UIManager UIManager;
 
+    bool amIOnMelodicAce = false;
+
     public DebugRegistry debug;
 
-    readonly float accuracyRange = 0.3f;
+    readonly float accuracyRange = 0.4f,
+                   dephase =  0.05f;
 
     float musicPlayerDeltaTime,
           frameStartTime,
@@ -45,12 +48,14 @@ public class RhythmManager : MonoBehaviour
 
     int percIntRhythmStatus = 0,
         melodIntRhythmStatus = 0;
+        
+    public int collectedMelodicAceNotes = 0;
 
-    Queue<float> percusiveNotes = new Queue<float>();
-    Queue<float> melodicNotes = new Queue<float>();
+    readonly Queue<float> percusiveNotes = new Queue<float>();
+    readonly Queue<float> melodicNotes = new Queue<float>();
 
-    List<float> monitoredPercusiveNotes = new List<float>();
-    List<float> monitoredMelodicNotes = new List<float>();
+    readonly List<float> monitoredPercusiveNotes = new List<float>();
+    readonly List<float> monitoredMelodicNotes = new List<float>();
     List<SecondChanceNotes> ListOfSecondChanceNotes = new List<SecondChanceNotes>();
     List<_events> SongEventsList = new List<_events>();
 
@@ -61,6 +66,9 @@ public class RhythmManager : MonoBehaviour
     public delegate void SongEventsNotifier();
     public static event SongEventsNotifier MelodicAceStart, MelodicAceEnd, FrenzeeStart, DeactivateSongEvents;
 
+    public delegate void GlobalNotesEvents();
+    public static event GlobalNotesEvents GloballyMissedMelodNote;
+
     private void Awake()
     {
         MusicPlayer = GetComponent<AudioSource>();
@@ -70,6 +78,9 @@ public class RhythmManager : MonoBehaviour
                                accuracyRange / 2, 
                                accuracyRange / 4 
                              };
+
+        MelodicAceStart += StartMelodicAceCounting;
+        MelodicAceEnd += StopMelodicAceCounting;
     }
 
     void Update()
@@ -90,7 +101,7 @@ public class RhythmManager : MonoBehaviour
 
             timeLeft -= musicPlayerDeltaTime;
 
-            frameStartTime = frameEndTime;
+            UIManager.UpdateTimer(timeLeft);
 
             //manage events
             //if there are still events to monitor
@@ -111,6 +122,7 @@ public class RhythmManager : MonoBehaviour
                             break;
                         case 1:
                         case 2:
+                            MelodicAceEnd();
                             FrenzeeStart();
                             break;
                         case 3:
@@ -157,6 +169,30 @@ public class RhythmManager : MonoBehaviour
                 //if it goes out of range, take it out
                 if (ListOfSecondChanceNotes[i].time < -ranges[0])
                 {
+                    if (ListOfSecondChanceNotes[i].whatPlayeris == FightManager.WhatPlayeris.P1)
+                    {
+                        if (ListOfSecondChanceNotes[i].typeOfRhythm == TypeOfRhythm.melodic)
+                        {
+                            input.Player1.MelodAccuStatus = RhythmSyncStatus.missed;
+                            input.Player1.MelodicBoostManager(RhythmSyncStatus.missed);
+                        }
+                        else
+                        {
+                            input.Player1.PercAccuStatus = RhythmSyncStatus.missed;
+                        }
+                    }
+                    else if (ListOfSecondChanceNotes[i].whatPlayeris == FightManager.WhatPlayeris.P2)
+                    {
+                        if (ListOfSecondChanceNotes[i].typeOfRhythm == TypeOfRhythm.melodic)
+                        {
+                            input.Player2.MelodAccuStatus = RhythmSyncStatus.missed;
+                            input.Player2.MelodicBoostManager(RhythmSyncStatus.missed);
+                        }
+                        else
+                        {
+                            input.Player2.PercAccuStatus = RhythmSyncStatus.missed;
+                        }
+                    }
                     ListOfSecondChanceNotes.RemoveAt(i);
                 }
             }
@@ -199,6 +235,10 @@ public class RhythmManager : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        frameStartTime = frameEndTime;
+    }
     public void ImportData(string songName, float tempo)
     {
         //this string is only used to import the json
@@ -271,6 +311,16 @@ public class RhythmManager : MonoBehaviour
         hasSongStarted = false;
     }
 
+    public void StartMelodicAceCounting()
+    {
+        collectedMelodicAceNotes = 0;
+        amIOnMelodicAce = true;
+    }
+
+    public void StopMelodicAceCounting()
+    {
+        amIOnMelodicAce = false;
+    }
 
     public void SwitchOfActions(RhythmSyncStatus statusToCheck, bool isItPercusive)
     {
@@ -315,6 +365,7 @@ public class RhythmManager : MonoBehaviour
                         monitoredMelodicNotes.RemoveAt(0);
                         monitoredMelodicNotes.Add(melodicNotes.Dequeue() - elapsedTime);
                         SwitchOfActions(statusToCheck, isItPercusive);
+                        GloballyMissedMelodNote();
                         //Debug.LogWarning("Importing new melodic note");
                     }
                     break;
@@ -367,7 +418,7 @@ public class RhythmManager : MonoBehaviour
 
             ListOfSecondChanceNotes.RemoveAt(index);
         }
-        else
+        else //if the player is the first one to collect the note
         {
             switch (whatPlayeris)
             {
@@ -402,9 +453,19 @@ public class RhythmManager : MonoBehaviour
                     secondChanceNoteTime = monitoredMelodicNotes[0];
 
                     if (whatPlayeris == FightManager.WhatPlayeris.P1)
+                    {
                         input.Player1.MelodAccuStatus = oldMelodicAccuStatus;
+                    }
+                        
                     else if (whatPlayeris == FightManager.WhatPlayeris.P2)
+                    {
                         input.Player2.MelodAccuStatus = oldMelodicAccuStatus;
+                    }
+
+                    if (amIOnMelodicAce && oldMelodicAccuStatus != RhythmSyncStatus.disabled)
+                    {
+                        collectedMelodicAceNotes++;
+                    }
 
                     break;
 

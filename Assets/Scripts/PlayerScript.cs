@@ -16,11 +16,14 @@ public class PlayerScript : MonoBehaviour
                 amIReadyToHit = false,
                 amIBoostingPercusive = false,
                 amIBoostingMelodic = false,
-                AmIProtecting = false;
+                AmIProtecting = false,
+                amIOnMelodicAce = false,
+                amIOnFrenzee = false;
 
     public int lifeReserve = 0,
                melodicComboLevel = 1,
-               collectedMelodicNotes = 0;
+               MelodicAceCollectedNotes = 0,
+               oldMelodicCombo = 0;
 
     public FightManager.WhatPlayeris whatPlayerAmI;
     public RhythmManager.RhythmSyncStatus PercAccuStatus, MelodAccuStatus;
@@ -29,7 +32,7 @@ public class PlayerScript : MonoBehaviour
 
     public BoxCollider HitDetectionBox;
 
-    Rigidbody rigidbody;
+    Rigidbody rb;
 
     public DebugRegistry debug;
 
@@ -38,13 +41,14 @@ public class PlayerScript : MonoBehaviour
 
     private void Awake()
     {
-        rigidbody = GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody>();
         HitDetectionBox.gameObject.SetActive(false);
 
         RhythmManager.MelodicAceStart += MonitorProgressForMelodicAce;
         RhythmManager.MelodicAceEnd += SuspendMelodicMonitoring;
         RhythmManager.FrenzeeStart += BoostOfFrenzee;
         RhythmManager.DeactivateSongEvents += StopSongBoosts;
+        RhythmManager.GloballyMissedMelodNote += MissedNoteGlobally;
         UIManagerGameObject.UpdatePlayerData(this);
 
     }
@@ -92,7 +96,7 @@ public class PlayerScript : MonoBehaviour
         {
             transform.position += new Vector3(xAxisSense / 2, 0.5f, 0);
             opponent = GetComponentInParent<PlayerScript>();
-            rigidbody.AddForce(opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * xAxisSense, opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * yAxisSense, 0);
+            rb.AddForce(opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * xAxisSense, opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * yAxisSense, 0);
             accumulatedDamage += (opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity) / 100;
             UIManagerGameObject.UpdatePlayerData(this);
 
@@ -121,6 +125,12 @@ public class PlayerScript : MonoBehaviour
     {
         if (!amIBoostingMelodic)
             StartCoroutine(MelodicBoost());
+        
+        //if a melodic ace event is happening and the status is good or perfect
+        if (amIOnMelodicAce && (MelodAccuStatus == RhythmManager.RhythmSyncStatus.good || MelodAccuStatus == RhythmManager.RhythmSyncStatus.perfect))
+        {
+            MelodicAceCollectedNotes++;
+        }
     }
 
     IEnumerator MelodicBoost()
@@ -212,79 +222,71 @@ public class PlayerScript : MonoBehaviour
 
     public void MelodicBoostManager(RhythmManager.RhythmSyncStatus melodRHythmicSyncStatus)
     {
-        Debug.Log("I enter the function with " + melodRHythmicSyncStatus + " status");
-        switch (melodRHythmicSyncStatus)
+        if (!amIOnFrenzee)
         {
-            case RhythmManager.RhythmSyncStatus.bad:
-            case RhythmManager.RhythmSyncStatus.missed:
-                int substraction;
+            if (melodRHythmicSyncStatus == RhythmManager.RhythmSyncStatus.perfect && melodicComboLevel < 8)
+            {
+                melodicComboLevel++;
+            }
+            else if (melodRHythmicSyncStatus == RhythmManager.RhythmSyncStatus.bad && melodicComboLevel > 1)
+            {
+                melodicComboLevel--;
+            }
 
-                if (melodRHythmicSyncStatus == RhythmManager.RhythmSyncStatus.bad)
-                    substraction = 1;
-                else
-                    substraction = 2;
+            else if (melodRHythmicSyncStatus == RhythmManager.RhythmSyncStatus.missed && melodicComboLevel > 2)
+            {
+                melodicComboLevel -= 2;
+            }
 
-                collectedMelodicNotes -= substraction;
-                if (collectedMelodicNotes < 0)
-                {
-                    if (melodicComboLevel == 1)
-                    {
-                        collectedMelodicNotes = 0;
-                    }
-                    else
-                    {
-                        melodicComboLevel--;
-                        collectedMelodicNotes = melodicComboLevel;
-                        substraction--;
-                        collectedMelodicNotes -= substraction;
-                    }
-                }
-                break;
+            else if (melodRHythmicSyncStatus == RhythmManager.RhythmSyncStatus.missed && melodicComboLevel <= 2)
+            {
+                melodicComboLevel = 1;
+            }
 
-            case RhythmManager.RhythmSyncStatus.perfect:
-                if (collectedMelodicNotes == melodicComboLevel)
-                {
-                    if (melodicComboLevel == 8)
-                    {
-                        //do nothing
-                    }
-                    else
-                    {
-                        melodicComboLevel++;
-                        collectedMelodicNotes = 0;
-                    }
-                }
-                else
-                {
-                    collectedMelodicNotes++;
-                }
-                break;
-
-
-            case RhythmManager.RhythmSyncStatus.good:
-            case RhythmManager.RhythmSyncStatus.disabled:
-            default:
-                break;
+            if (melodicComboLevel <= 0)
+            {
+                melodicComboLevel = 1;
+            }
         }
     }
 
     public void MonitorProgressForMelodicAce()
     {
-
+        MelodicAceCollectedNotes = 0;
+        amIOnMelodicAce = true;
     }
 
     public void SuspendMelodicMonitoring()
     {
-
+        amIOnMelodicAce = false;
     }
 
     public void BoostOfFrenzee() 
-    { 
-        
+    {
+        amIOnFrenzee = true;
+        if (MelodicAceCollectedNotes >= (RhythmManager.collectedMelodicAceNotes / 4) * 3)
+        {
+            oldMelodicCombo = melodicComboLevel;
+            melodicComboLevel *= 2;
+        }
+        else if (MelodicAceCollectedNotes >= RhythmManager.collectedMelodicAceNotes / 2)
+        {
+            melodicComboLevel += melodicComboLevel / 2;
+        }
+        else if (MelodicAceCollectedNotes >= RhythmManager.collectedMelodicAceNotes / 4)
+        {
+            melodicComboLevel += melodicComboLevel / 4;
+        }
     }
 
     public void StopSongBoosts()
     {
+        amIOnFrenzee = false;
+        melodicComboLevel = oldMelodicCombo;
+    }
 
+    public void MissedNoteGlobally()
+    {
+        MelodicBoostManager(RhythmManager.RhythmSyncStatus.missed);
     }
 }
