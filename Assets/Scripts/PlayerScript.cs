@@ -56,7 +56,7 @@ public class PlayerScript : MonoBehaviour
     private void Update()
     {
         //lock Z on position
-        transform.position = new Vector3(transform.position.x, transform.position.y, 0);
+        transform.position = new Vector3(transform.position.x, transform.position.y, -6.96f);
         if (AmIProtecting)
         {
             sensitivity = 1f;
