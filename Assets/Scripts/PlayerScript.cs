@@ -10,7 +10,8 @@ public class PlayerScript : MonoBehaviour
                  jumpBonus = 1,
                  hitBonus = 1,
                  melodicBonus = 1,
-                 sensitivity;
+                 sensitivity,
+                 gravInvertedSensitivity = 0.1f;
 
     public bool isOnGround = true,
                 amIReadyToHit = false,
@@ -55,6 +56,8 @@ public class PlayerScript : MonoBehaviour
 
     private void Update()
     {
+        rb.velocity = new Vector3(0, 0, 0);
+        
         //lock Z on position
         transform.position = new Vector3(transform.position.x, transform.position.y, -6.96f);
         if (AmIProtecting)
@@ -65,13 +68,31 @@ public class PlayerScript : MonoBehaviour
         {
             sensitivity = 200;
         }
+
+        if (!isOnGround)
+        {
+            Debug.Log("I add " + 9.81f * Time.deltaTime + " of force");
+            transform.position -= new Vector3(0, (9.81f * Time.deltaTime) * 1f, 0);
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
+        
         if (collision.gameObject.GetComponent<Ground>() != null)
         {
             isOnGround = true;
+        }
+
+        
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.GetComponent<Ground>() != null)
+        {
+            isOnGround = false;
+            Debug.Log("I detect collision");
         }
     }
 
@@ -92,18 +113,26 @@ public class PlayerScript : MonoBehaviour
         else
             yAxisSense = -1;
 
-        if (other.gameObject.GetComponent<HitTrigger>() != null)
+        //if I detect a hit trigger that isn't mine
+        if (other.gameObject.GetComponent<HitTrigger>() != null && gameObject.transform.parent.gameObject != this.gameObject)
         {
             transform.position += new Vector3(xAxisSense / 2, 0.5f, 0);
             opponent = GetComponentInParent<PlayerScript>();
             rb.AddForce(opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * xAxisSense, opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity * yAxisSense, 0);
-            accumulatedDamage += (opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity) / 100;
+            accumulatedDamage +=Mathf.Abs( (opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity / 100));
+            Debug.Log("I add " + (opponent.hitBonus * ((accumulatedDamage / 100) + 1) * sensitivity / 100) + "of force to me");
+
             UIManagerGameObject.UpdatePlayerData(this);
 
             if (accumulatedDamage >= 300)
             {
                 accumulatedDamage = 300;
             }
+        }
+
+        else if (other.gameObject.GetComponent<Ground>() != null)
+        {
+            isOnGround = true;
         }
     }
 
@@ -119,6 +148,7 @@ public class PlayerScript : MonoBehaviour
             }
             UIManagerGameObject.UpdatePlayerData(this);
             transform.position = new Vector3(0, 2, 0);
+            rb.velocity = new Vector3(0,0,0);
         }
     }
     public void StartMelodicBoost()
@@ -288,5 +318,22 @@ public class PlayerScript : MonoBehaviour
     public void MissedNoteGlobally()
     {
         MelodicBoostManager(RhythmManager.RhythmSyncStatus.missed);
+    }
+
+    public void StartjumpRoutine()
+    {
+        isOnGround = false;
+        StartCoroutine(JumpRoutine());
+    }
+
+    IEnumerator JumpRoutine()
+    {
+        float targetYPosition = transform.position.y + 3f;
+
+        while (transform.position.y <= targetYPosition)
+        {
+            transform.position += new Vector3(0, (10 * Time.deltaTime) * 1.5f, 0);
+            yield return null;
+        }
     }
 }

@@ -150,36 +150,36 @@ public class UIManager : MonoBehaviour
         debuggingScreen.SetActive(true);
 
         debugP1Stats.text = ("P1\n" +
-                             "Saltos totales: "                       + debug.player1.totalJumps                    +
-                             "Golpes Totales: "                       + debug.player1.totalHits                     +
-                             "Golpes / boosts percusivos perdidos: "  + debug.player1.failedPercusiveBoostsOrHits   +
-                             "Golpes / boosts percusivos malos: "     + debug.player1.badPercusiveBoostsOrHits      +
-                             "Golpes / boosts percusivos buenos: "    + debug.player1.goodPercusiveBoostsOrHits     +
-                             "Golpes / boosts percusivos perfectos: " + debug.player1.perfectPercusiveBoostsOrHits  +
-                             "Golpes / boosts melódicos perdidos: "   + debug.player1.failedMelodicBoostsOrHits     +
-                             "Golpes / boosts melódicos malos: "      + debug.player1.badMelodicBoostsOrHits        +
-                             "Golpes / boosts melódicos buenos: "     + debug.player1.goodMelodicBoostsOrHits       +
-                             "Golpes / boosts melódicos perfectos: "  + debug.player1.perfectMelodicBoostsOrHits    +
-                             "Saltos potenciados melódicamente: "     + debug.player1.melodicJumps                  +
-                             "Saltos potenciados percusivamente: "    + debug.player1.percusiveJumps                +
-                             "Defensas activadas: "                   + debug.player1.defenses                      +
+                             "Saltos totales: "                       + debug.player1.totalJumps                    + "\n" +
+                             "Golpes Totales: "                       + debug.player1.totalHits                     + "\n" +
+                             "Golpes / boosts percusivos perdidos: "  + debug.player1.failedPercusiveBoostsOrHits   + "\n" +
+                             "Golpes / boosts percusivos malos: "     + debug.player1.badPercusiveBoostsOrHits      + "\n" +
+                             "Golpes / boosts percusivos buenos: "    + debug.player1.goodPercusiveBoostsOrHits     + "\n" +
+                             "Golpes / boosts percusivos perfectos: " + debug.player1.perfectPercusiveBoostsOrHits  + "\n" +
+                             "Golpes / boosts melódicos perdidos: "   + debug.player1.failedMelodicBoostsOrHits     + "\n" +
+                             "Golpes / boosts melódicos malos: "      + debug.player1.badMelodicBoostsOrHits        + "\n" +
+                             "Golpes / boosts melódicos buenos: "     + debug.player1.goodMelodicBoostsOrHits       + "\n" +
+                             "Golpes / boosts melódicos perfectos: "  + debug.player1.perfectMelodicBoostsOrHits    + "\n" +
+                             "Saltos potenciados melódicamente: "     + debug.player1.melodicJumps                  + "\n" +
+                             "Saltos potenciados percusivamente: "    + debug.player1.percusiveJumps                + "\n" +
+                             "Defensas activadas: "                   + debug.player1.defenses                      + "\n" +
                              "Caídas forzadas: "                      + debug.player1.forcedFalls                   );
 
 
         debugP2Stats.text = ("P2\n" +
-                             "Saltos totales: "                       + debug.player2.totalJumps                    + 
-                             "Golpes Totales: "                       + debug.player2.totalHits                     +
-                             "Golpes / boosts percusivos perdidos: "  + debug.player2.failedPercusiveBoostsOrHits   +
-                             "Golpes / boosts percusivos malos: "     + debug.player2.badPercusiveBoostsOrHits      +
-                             "Golpes / boosts percusivos buenos: "    + debug.player2.goodPercusiveBoostsOrHits     +
-                             "Golpes / boosts percusivos perfectos: " + debug.player2.perfectPercusiveBoostsOrHits  +
-                             "Golpes / boosts melódicos perdidos: "   + debug.player2.failedMelodicBoostsOrHits     +
-                             "Golpes / boosts melódicos malos: "      + debug.player2.badMelodicBoostsOrHits        +
-                             "Golpes / boosts melódicos buenos: "     + debug.player2.goodMelodicBoostsOrHits       +
-                             "Golpes / boosts melódicos perfectos: "  + debug.player2.perfectMelodicBoostsOrHits    +
-                             "Saltos potenciados melódicamente: "     + debug.player2.melodicJumps                  +
-                             "Saltos potenciados percusivamente: "    + debug.player2.percusiveJumps                +
-                             "Defensas activadas: "                   + debug.player2.defenses                      +
+                             "Saltos totales: "                       + debug.player2.totalJumps                    + "\n" +
+                             "Golpes Totales: "                       + debug.player2.totalHits                     + "\n" +
+                             "Golpes / boosts percusivos perdidos: "  + debug.player2.failedPercusiveBoostsOrHits   + "\n" +
+                             "Golpes / boosts percusivos malos: "     + debug.player2.badPercusiveBoostsOrHits      + "\n" +
+                             "Golpes / boosts percusivos buenos: "    + debug.player2.goodPercusiveBoostsOrHits     + "\n" +
+                             "Golpes / boosts percusivos perfectos: " + debug.player2.perfectPercusiveBoostsOrHits  + "\n" +
+                             "Golpes / boosts melódicos perdidos: "   + debug.player2.failedMelodicBoostsOrHits     + "\n" +
+                             "Golpes / boosts melódicos malos: "      + debug.player2.badMelodicBoostsOrHits        + "\n" +
+                             "Golpes / boosts melódicos buenos: "     + debug.player2.goodMelodicBoostsOrHits       + "\n" +
+                             "Golpes / boosts melódicos perfectos: "  + debug.player2.perfectMelodicBoostsOrHits    + "\n" +
+                             "Saltos potenciados melódicamente: "     + debug.player2.melodicJumps                  + "\n" +
+                             "Saltos potenciados percusivamente: "    + debug.player2.percusiveJumps                + "\n" +
+                             "Defensas activadas: "                   + debug.player2.defenses                      + "\n" +
                              "Caídas forzadas: "                      + debug.player2.forcedFalls                   );
 
     }
@@ -205,8 +205,8 @@ public class UIManager : MonoBehaviour
         //Jokes aside, if the seconds are less tha 10, add a 0 to the string for aesthetic purposes
         //in both caes, Take the minutes out of the seconds, put them in the timer, add the chars, and put the remaining seconds into the timer
         if (remainingTime % 60 < 10)
-            Timer.text = Convert.ToInt32(Math.Floor(remainingTime) / 60) + ":0" + Convert.ToInt32(Math.Floor(remainingTime) % 60);
+            Timer.text = Convert.ToInt32(Math.Floor(remainingTime / 60)) + ":0" + Convert.ToInt32(Math.Floor(remainingTime) % 60);
         else
-            Timer.text = Convert.ToInt32(Math.Floor(remainingTime) / 60) + ":"  + Convert.ToInt32(Math.Floor(remainingTime) % 60);
+            Timer.text = Convert.ToInt32(Math.Floor(remainingTime / 60)) + ":"  + Convert.ToInt32(Math.Floor(remainingTime) % 60);
     }
 }

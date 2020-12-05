@@ -60,8 +60,7 @@ public class InputReader: MonoBehaviour
         //jump P1
         if(Input.GetKeyDown(KeyCode.W) && Player1.isOnGround)
         {
-            Player1.GetComponent<Rigidbody>().AddForce(0, jumpForce, 0);
-            Player1.isOnGround = false;
+            Player1.StartjumpRoutine();
 
             if (Player1.amIBoostingMelodic)
                 debug.player1.melodicJumps++;
@@ -154,8 +153,7 @@ public class InputReader: MonoBehaviour
         //jump P2
         if (Input.GetKeyDown(KeyCode.U) && Player2.isOnGround)
         {
-            Player2.GetComponent<Rigidbody>().AddForce(0, jumpForce, 0);
-            Player2.isOnGround = false;
+            Player2.StartjumpRoutine();
 
             if (Player2.amIBoostingMelodic)
                 debug.player2.melodicJumps++;
@@ -187,7 +185,7 @@ public class InputReader: MonoBehaviour
         }
         
         //hit input P2
-        if (Input.GetKeyDown(KeyCode.N) || Input.GetKeyDown(KeyCode.M))
+        if (Input.GetKeyDown(MelodicInputP2) || Input.GetKeyDown(PercusiveInputP2))
         {
             Player2.amIReadyToHit = true;
             
